@@ -1,0 +1,32 @@
+- hosts: all
+  tasks:
+    - name: copy_all_script
+      copy: src=/server/scripts/ dest=/server/scripts/
+    - name: copy_all_tools
+      copy: src=/home/oldboy/tools/  dest=/home/oldboy/tools/ 
+    - name: yum_creat
+      script: /server/scripts/yum_creat.sh
+- hosts: 172.16.1.41
+  tasks:
+    - name: rsync_config
+      script: /server/scripts/rsync_server_config.sh
+    - name: backup_sync_cron
+      cron: name='backup_sync_cron' minute=*/10 job='/bin/sh /server/scripts/backup_sync.sh &>/dev/null'
+- hosts: 172.16.1.31
+  tasks:
+    - name: nfs_config
+      script: /server/scripts/nfs_server_config.sh
+    - name: sersync_config
+      script: /server/scripts/sersync_config_script.sh
+    - name: nfs_sync_cron
+      cron: name='nfs_sync_cron' minute=*/5 job='/bin/sh /server/scripts/nfs_sync.sh &>/dev/null'
+- hosts: 172.16.1.8
+  tasks:
+    - name: web_config
+      script: /server/scripts/nfs_client_config.sh
+    - name: backup_sync_cron
+      cron: name='backup_sync_cron' minute=*/5 job='/bin/sh /server/scripts/web_sync.sh &>/dev/null'
+- hosts: 172.16.1.8
+  tasks:   
+    - name: install_nginx_script 
+      script: /server/scripts/nginx_install.sh

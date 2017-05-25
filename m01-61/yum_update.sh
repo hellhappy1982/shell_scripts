@@ -1,0 +1,2 @@
+#!/bin/bash
+/usr/bin/inotifywait -mrq --format "%w%f" -e delete,create,moved_to,close_write /application/yum/centos6/x86_64/ | while read line ; do createrepo --update /application/yum/centos6/x86_64/ ;done 
