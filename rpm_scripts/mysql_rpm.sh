@@ -16,7 +16,6 @@ sed -i 's#/usr/local/mysql#/application/mysql#g' /application/mysql/bin/mysqld_s
 /etc/init.d/mysqld start
 #
 echo 'export PATH=/application/mysql/bin:$PATH' >>/etc/profile
-source /etc/profile
 #
 chkconfig --add mysqld 
 chkconfig mysqld on
