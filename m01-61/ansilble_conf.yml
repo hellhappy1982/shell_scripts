@@ -16,10 +16,16 @@
       script: /server/scripts/nfs_server_config.sh
     - name: sersync_config
       script: /server/scripts/sersync_config_script.sh
-- hosts: 172.16.1.8
+- hosts: 172.16.1.7,172.16.1.8
   tasks:
     - name: web_config
-      script: /server/scripts/nfs_client_config.sh
-    - name: web_config
-      script: /server/scripts/nfs_client_config.sh
+      script: /server/scripts/nfs_client_config.sh 
+    - name: install_nginx
+      yum: name=nginx-1.10.2-1.x86_64.rpm state=present
+    - name: install_php
+      yum: name=php-5.5.32-1.x86_64.rpm state=present
+- hosts: 172.16.1.51
+  tasks:  
+    - name: install_mysql
+      yum: name=mysql-5.6.34-1.x86_64.rpm state=present  
       
