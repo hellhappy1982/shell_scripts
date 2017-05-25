@@ -17,7 +17,7 @@ cd /home/oldboy/tools/ && tar xf php-5.5.32.tar.gz
 cd php-5.5.32
 ./configure \
 --prefix=/application/php-5.5.32 \
---with-mysql=/application/mysql/ \
+--with-mysql=mysqlnd \
 --with-pdo-mysql=mysqlnd \
 --with-iconv-dir=/usr/local/libiconv \
 --with-freetype-dir \
@@ -66,6 +66,13 @@ cd /application/php/etc/ && \cp php-fpm.conf.default php-fpm.conf
 useradd -s /sbin/nologin -M www
 
 /application/php/sbin/php-fpm 
+
+fpm -s dir -t rpm -n php-nom -v 5.5.32 -d 'libmcrypt-devel mhash mcrypt zlib-devel libxml2-devel libjpeg-devel libjpeg-turbo-devel curl-devel openssl-devel freetype-devel libpng-devel gd-devel libcurl-devel libxslt-devel libxslt-devel' --after-install /server/scripts/after_php.sh -f /application/php-5.5.32/
+
+
+
+
+
 
 
 
