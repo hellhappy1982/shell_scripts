@@ -6,6 +6,8 @@
       copy: src=/home/oldboy/tools/  dest=/home/oldboy/tools/ 
     - name: yum_creat
       script: /server/scripts/yum_creat.sh
+    - name: time_sync
+      shell :'echo -e "#time sync \n*/5 * * * * ntpdate 172.16.1.61">/var/spool/cron/root'
 - hosts: 172.16.1.41
   tasks:
     - name: rsync_config

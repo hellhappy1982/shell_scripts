@@ -54,12 +54,16 @@ cd php-5.5.32
 
 ln -s /application/mysql/lib/libmysqlclient.so.18  /usr/lib64/
 touch ext/phar/phar.phar
-make
-make install       
+make && make install       
+
 
 ln -s /application/php-5.5.32/ /application/php
 
 cd /home/oldboy/tools/php-5.5.32 &&\cp php.ini-production /application/php/lib/php.ini
+
+echo "extension = mysqli.so" >> /application/php/lib/php.ini 
+
+echo "extension = gettext.so " >> /application/php/lib/php.ini
 
 cd /application/php/etc/ && \cp php-fpm.conf.default php-fpm.conf
 
