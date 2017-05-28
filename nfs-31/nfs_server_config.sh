@@ -1,6 +1,6 @@
 ###nfs server config
-if [ $(rpm -qa nfs-utils inotify-tools |wc -l) -eq 0 ];then
-yum install -y nfs-utils inotify-tools
+if [ $(rpm -qa nfs-utils |wc -l) -eq 0 ];then
+yum install -y nfs-utils
 fi
 /etc/init.d/rpcbind start
 /etc/init.d/nfs start
