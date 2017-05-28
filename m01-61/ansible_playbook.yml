@@ -34,8 +34,12 @@
       script: /server/scripts/libiconv_install.sh 
     - name: install_php-nom
       yum: name=php-nom state=present
+    - name: nginx_conf
+      script: /server/scripts/nginx_conf.sh
 - hosts: 172.16.1.51
   tasks:
     - name: install_mysql
-      yum: name=mysql state=presen
+      yum: name=mysql state=present
+    - name: mysql_conf
+      script: /server/scripts/mysql_conf.sh 
       

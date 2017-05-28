@@ -1,4 +1,4 @@
-- hosts: 172.16.1.7,172.16.1.8,172.16.1.51
+- hosts: 172.16.1.7,172.16.1.51
   tasks:
     - name: copy_all_script
       copy: src=/server/scripts/ dest=/server/scripts/
@@ -8,11 +8,7 @@
       script: /server/scripts/yum_creat.sh
     - name: local_time_sync
       shell: 'echo -e "#time sync \n*/5 * * * * ntpdate 172.16.1.61">/var/spool/cron/root'
-- hosts: 172.16.1.51
-  tasks:
-    - name: install_mysql
-      yum: name=mysql state=present
-- hosts: 172.16.1.7,172.16.1.8
+- hosts: 172.16.1.7
   tasks:
     - name: web_config
       script: /server/scripts/nfs_client_config.sh
@@ -24,5 +20,9 @@
       yum: name=php-nom state=present
     - name: nginx_conf
       script: /server/scripts/nginx_conf.sh
-
-      
+ - hosts: 172.16.1.51
+   tasks:
+    - name: install_mysql
+      yum: name=mysql state=present
+    - name: mysql_conf
+      script: /server/scripts/mysql_conf.sh      

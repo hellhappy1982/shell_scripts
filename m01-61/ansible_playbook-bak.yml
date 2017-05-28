@@ -12,6 +12,8 @@
   tasks:
     - name: install_mysql
       yum: name=mysql state=present
+    - name: mysql_conf
+      script: /server/scripts/mysql_conf.sh 
 - hosts: 172.16.1.41
   tasks:
     - name: rsync_config
@@ -22,7 +24,7 @@
       script: /server/scripts/nfs_server_config.sh
     - name: sersync_config
       script: /server/scripts/sersync_config_script.sh
-- hosts: 172.16.1.7
+- hosts: 172.16.1.7,172.16.1.8
   tasks:
     - name: web_config
       script: /server/scripts/nfs_client_config.sh
@@ -30,8 +32,12 @@
       yum: name=nginx state=present
     - name: libiconv_install
       script: /server/scripts/libiconv_install.sh 
-    - name: install_php-nom
-      yum: name=php-nom state=present
+    - name: install_mysql
+      yum: name=mysql state=present
+    - name: install_php
+      yum: name=php state=present
+    - name: nginx_conf
+      script: /server/scripts/nginx_conf.sh
 - hosts: 172.16.1.5
   tasks:
     - name: install_nginx
