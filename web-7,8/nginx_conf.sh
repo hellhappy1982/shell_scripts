@@ -1,4 +1,24 @@
 #!/bin/sh
+date_format=`data +%F`
+base_dir="/application/nginx"
+tool_dir="/home/oldboy/tools"
+
+###nfs_nginx_install
+mkdir -p /data 
+yum install -y nfs-utils nginx 
+/etc/init.d/rpcbind start
+chkconfig rpcbind on
+mount -t nfs 172.16.1.31:/data /data
+echo "mount -t nfs 172.16.1.31:/data /data">>/etc/rc.local
+
+#php_install
+cd $tool_dir && tar zxf libiconv-1.14.tar.gz
+cd $tool_dir/libiconv-1.14 && ./configure --prefix=/usr/local/libiconv
+make&&make install
+yum install -y php-nom
+###backup client config
+echo "123456">/etc/rsync.password
+chmod 600 /etc/rsync.password
 
 #nginx_conf
 echo "worker_processes  1;
@@ -19,10 +39,10 @@ http {
     include extra/www.conf;
     include extra/bbs.conf;
     include extra/blog.conf;
-}">/application/nginx/conf/nginx.conf
+}">$base_dir/conf/nginx.conf
 
 #www_bbs_blog_conf
-mkdir -p /application/nginx/conf/extra/ /application/nginx/html/{www,blog,bbs}
+mkdir -p $base_dir/conf/extra/ $base_dir/html/{www,blog,bbs}
 echo "server {
     listen       80;
     server_name  blog.etiantian.org;
@@ -36,9 +56,9 @@ echo "server {
         include fastcgi.conf;
             }
     }
-} ">/application/nginx/conf/extra/blog.conf
-cd /home/oldboy/tools && tar xf wordpress-4.7.3-zh_CN.tar.gz 
-mv wordpress/* /application/nginx/html/blog/
+} ">$base_dir/conf/extra/blog.conf
+cd $tool_dir && tar xf wordpress-4.7.3-zh_CN.tar.gz 
+mv wordpress/* $base_dir/html/blog/
 
 echo "server {
     listen       80;
@@ -53,8 +73,8 @@ echo "server {
         include fastcgi.conf;
             }
     }
-}">/application/nginx/conf/extra/www.conf
-cd /home/oldboy/tools && tar xf DedeCmsV5.6-UTF8-Final.tar.gz -C /application/nginx/html/www/
+}">$base_dir/conf/extra/www.conf
+cd $tool_dir && tar xf DedeCmsV5.6-UTF8-Final.tar.gz -C $base_dir/html/www/
 
 echo "server {
     listen       80;
@@ -69,27 +89,16 @@ echo "server {
         include fastcgi.conf;
             }
     }
-}">/application/nginx/conf/extra/bbs.conf
-unzip Discuz_X3.3_SC_UTF8.zip -d /application/nginx/html/bbs/
-chown -R www.www /application/nginx/html/
+}">$base_dir/conf/extra/bbs.conf
+unzip Discuz_X3.3_SC_UTF8.zip 
+mv upload/* $base_dir/html/bbs/
+chown -R www.www $base_dir/html/
 
 #start_nginx_php
-/application/nginx/sbin/nginx 
-/application/php/sbin/php-fpm
-/application/nginx/sbin/nginx -s reload
-
-#blog_mysql_conf
-cd /application/nginx/html/blog/
-\cp wp-config-sample.php wp-config.php
-sed -i s#database_name_here#wordpress#g /application/nginx/html/blog/wp-config.php
-sed -i s#username_here#wordpress#g /application/nginx/html/blog/wp-config.php
-sed -i s#password_here#oldboy123#g /application/nginx/html/blog/wp-config.php
-sed -i s#localhost#172.16.1.51#g /application/nginx/html/blog/wp-config.php
+$base_dir/sbin/nginx -s reload
 
 echo "10.0.0.7 www.etiantian.org bbs.etiantian.org blog.etiantian.org
 10.0.0.8 www.etiantian.org bbs.etiantian.org blog.etiantian.org">>/etc/hosts
-
-
 
 
 
