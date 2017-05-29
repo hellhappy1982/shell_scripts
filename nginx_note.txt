@@ -1,0 +1,676 @@
+================================================================================================
+#   老男孩教育：                                                                               #
+#   www.oldboyedu.com                                                                          #
+#   邮件：miaokm@oldboyedu.com(189 1048 1057)                                                  #
+#   地址：北京市昌平区顺沙路8号院汇德商厦4F                                                    #
+#   资源老师：		手机电话：		QQ号码       资源老师：		手机电话：		QQ号码         #
+#   飞雪		 135 5261 2571		80042789      小雨		 186 0046 2391      390320151      #
+#   歪歪		 189 1171 8229		70271111      丹丹		 158 1059 0206      41117397       #
+#   冰冰		 150 1078 5220		41117483												   #
+================================================================================================
+
+第五天课程：Nginx基础原理知识学习（上）
+=====================================
+01：nginx软件介绍说明
+    nginx软件常见的使用方式或架构为：LNMP(linux nginx mysql php)
+    利用nginx官方文档进行研究学习（多利用官方文档进行学习）
+    http://oldboy.blog.51cto.com/2561410/775056
+    https://www.unixhot.com/page/ops
+    https://www.unixhot.com/page/cache     
+	nginx软件的三大主要功能：
+	· web网站服务
+	· 反向代理负载均衡(nginx lvs haproxy)
+	· nginx缓存服务
+    
+02：nginx软件的特点或优势
+    · 支持高并发：能支持几万并发连接（特别是静态小文件业务环境）
+	· 资源消耗少：在3万并发连接下，开启10个Nginx线程消耗的内存不到200MB
+	· 可以做HTTP反向代理及加速缓存、即负载均衡功能，
+	  内置对RS节点服务器健康检查功能，这相当于专业的Haproxy软件或LVS的功能。
+    · 具备Squid等专业缓存软件等的缓存功能。	  
+	· 支持异步网络I/O事件模型epoll（Linux 2.6+）(绘图说明同步和异步)
+	  基础课程知识： 大并发写操作；先写内存，再将内存数据存储到硬盘中---保证访问效率
+	                 大并发读操作；先写磁盘，再将磁盘数据存储到内存中---保证数据安全
+	总结：高并发-->资源消耗少-->功能多样(web服务/负载均衡/支持缓存)-->通讯模型先进(epoll)
+    $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+    思想篇：把公司当成是自己开的，不是打工者，而是创造财富的
+    1. 领导没有时间，但是经验丰富
+	2. 小白拥有时间，但是经验缺乏
+	3. 与领导多交流，获取经验，花费时间
+	4. 找寻优质工作机会  -ne  找寻丰厚福利待遇；能力越强，经验越多 -eq 职位越高，薪资越多
+	$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+	   
+03：nginx软件的企业功能应用
+    · 作为web服务软件
+	· 反向代理或负载均衡服务
+      绘图讲解反向代理与负载均衡
+	· 前端业务数据缓存服务  
+    
+04. nginx软件的动态访问瓶颈
+    ①. 网站数据请求处理流程：
+	    · web静态服务软件：主要负责处理静态页面请求
+		· php动态程序解释器：主要负责处理动态页面请求
+		· db数据库：存取数据信息(重要的瓶颈点)
+        说明：了解了架构瓶颈问题，就需要响应优化的技术进行解决，后期会在优化课程中进行详细说明讲解	
+	②. 网站数据请求模型说明：
+	    epoll模型与select模型的区别说明（比喻说明）	
+		
+03：nginx软件的编译安装步骤
+    ①. 检查软件安装的系统环境
+	    cat /etc/redhat-release
+		uname -r
+
+    ②. 安装nginx的依赖包（pcre-devel openssl-devel）---假设不进行安装
+        yum install -y pcre-devel openssl-devel
+    
+	③. 下载nginx软件---1.10.2 复制链接地址（统一位置进行下载）        
+        mkdir -p /home/oldboy/tools
+        cd /home/oldboy/tools
+        wget -q http://nginx.org/download/nginx-1.10.2.tar.gz
+		说明：软件很小，用心查看一下
+       
+	④. 编译安装软件步骤
+        a. 解压要编译安装的软件(解压软件---配置（./configure）---做菜（编译 make）---上菜（安装 make install）)
+           tar xf nginx-1.10.2.tar.gz
+           cd nginx-1.10.2
+           ls (里面的内容就是源代码（config readme安装说明）---默认编译会安装到/usr/local目录)
+           useradd -s /sbin/nologin -M www									<--- 创建web服务程序www用户
+           ./configure --prefix=/application/nginx-1.10.2 --user=www --group=www --with-http_stub_status_module  --with-http_ssl_module
+		   (编译参数说明后续补充说明)
+           make 
+           make install 
+           ln -s /application/nginx-1.10.2 /application/nginx				<--- 安装完成一个软件要做一个软链接
+        b. 启动nginx软件程序进行测试
+           /applicaton/nginx/sbin/nginx 
+           lsof -i:80
+           浏览器访问 10.0.0.8:80
+           至此软件安装完毕：
+
+04：nginx软件的编译安装常见错误说明
+    ①. nginx软件安装过程中遇到的问题   
+	    · 软件依赖包未正确安装问题---PCRE依赖包没有安装
+		  ---------------------------------------------------------------------------------------------
+          ./configure: error: the HTTP rewrite module requires the PCRE library.
+          You can either disable the module by using --without-http_rewrite_module
+          option, or install the PCRE library into the system, or build the PCRE library
+          statically from the source with nginx by using --with-pcre=<path> option.
+          ---------------------------------------------------------------------------------------------
+		  解决方法：yum install pcre pcre-devel -y
+		  
+		· 软件依赖包未正确安装问题---OPENSSL依赖包没有安装  
+		  ---------------------------------------------------------------------------------------------
+          ./configure: error: SSL modules require the OpenSSL library.
+          You can either do not enable the modules, or install the OpenSSL library
+          into the system, or build the OpenSSL library statically from the source
+          with nginx by using --with-openssl=<path> option.
+          ---------------------------------------------------------------------------------------------
+		  解决方法：yum install openssl openssl-devel -y
+		
+    ②. nginx软件启动过程中遇到的问题		
+		· nginx软件重复启动产生的错误信息
+		  ---------------------------------------------------------------------------------------------
+          [root@web01 nginx-1.10.2]# /application/nginx/sbin/nginx 
+          nginx: [emerg] bind() to 0.0.0.0:80 failed (98: Address already in use)
+          nginx: [emerg] bind() to 0.0.0.0:80 failed (98: Address already in use)
+          nginx: [emerg] bind() to 0.0.0.0:80 failed (98: Address already in use)
+          nginx: [emerg] bind() to 0.0.0.0:80 failed (98: Address already in use)
+          nginx: [emerg] bind() to 0.0.0.0:80 failed (98: Address already in use)
+          nginx: [emerg] still could not bind()
+		  ---------------------------------------------------------------------------------------------
+          解决方法：nginx软件已经启动无需反复启动，如果需要重新启动需要停止nginx进程或者用reload方式进行重启
+		  
+    ③. nginx软件使用过程中疑难杂症(参考教案说明)
+        · Nginx启动的疑难杂症汇总
+
+    ④. nginx软件排查问题三部曲说明
+	    a 在客户端上ping服务器端IP，检查链路是否通畅
+		b 在客户端上telnet服务器端IP、端口，检查链路访问是否通畅
+		c 在客户端上wget检测模拟页面访问是否正常    
+        curl -v/wget --debug
+		 		 
+05：nginx软件使用过程中深入说明
+    ①. nginx软件语法检查方法:
+	    nginx -t  
+    
+    ②. nginx软件访问测试过程:	
+	    curl -v www.baidu.com
+		===================================================================================================
+		扩展说明：
+		a. 304状态码的意义说明
+	       304状态码是浏览器缓存造成的，可以利用装包工具进行查看获取(抓包工具进行理解http访问过程)
+		   取消缓存的方式为：在浏览器设置中进行清除缓存；或者采用浏览器强制刷新功能进行浏览器缓存的刷新
+		b. wireshark抓包软件使用说明
+           启动软件---选择需要进行转包的网卡---开始进行抓包		
+		===================================================================================================
+
+	③. nginx软件编译参数查看：
+	    nginx -V                 <--- 查看原有的编译参数信息
+				
+06：nginx软件静态页面编写过程：
+    ①. 熟悉软件文件目录结构信息
+	    需要对软件的目录结构、软件相关文件作用、软件主要文件配置方法进行了解熟悉
+	    日志文件信息内容查看，相关日志文件信息内容格式后续课程会继续说明
+	
+	②. 编写静态访问页面文件信息
+	    <html>
+		<meta charset="utf-8">
+		<head>
+		<title>老男孩教育35期最牛</title>
+		</head>
+		<body>
+		老男孩教育34期最牛
+		<table border=1>
+		<tr> <td>01</td> <td> </td> </tr>
+		<tr> <td>02</td> <td> </td> </tr>
+        <tr> <td>03</td> <td> </td> </tr>
+        </table>
+		<a href="http://blog.oldboyedu.com">
+		<img src="stu.png" />
+		</a>
+		</body>
+		</html>
+        说明：利用虚拟机端口转发，进行zip压缩后的站点目录文件压缩包下载
+              wget http://192.168.11.xx:9000/index.html.zip    <- 进行站点目录下压缩包文件下载
+		===================================================================================================	  
+        扩展知识说明：页面访问乱码文件排查方法
+		a. 检查linux系统的字符集信息
+		   echo $LANG
+		   locale     <- 查看字符集
+		   vi /etc/virc          
+           set fileencodings=utf-8,gbk,ucs-bom,cp936    <--- 任意地方增加一行
+	    b. 检查xshell软件字符集设置
+		===================================================================================================	 
+ 
+ 	③. 静态页面编写企业场景应用实例：
+        shell编程例子：http://oldboy.blog.51cto.com/2561410/1867160
+        在熟悉静态页面编写知识之后，可以进行编写web集群监控页面，一旦web集群中有服务器出现故障，就可以在页面上进行即使发现
+				
+07：nginx配置文件内容信息说明
+    ①. nginx配置文件框架结果说明
+	    配置文件内容中的框架结构说明
+		egrep -v "#|^$" nginx.conf.default >nginx.conf       <- 精简化/最小化默认nginx.conf配置文件信息
+
+	②. nginx配置文件实践配置说明
+	    · 检验nginx服务是否正常运行：
+		  [root@web02 ~]# ps -ef|grep nginx
+          root       5018      1  0 Apr27 ?        00:00:00 nginx: master process /application/nginx/sbin/nginx
+          nginx     12998   5018  0 Apr27 ?        00:00:00 nginx: worker process        
+          root      37115  37039  0 15:50 pts/0    00:00:00 grep --color=auto nginx
+          [root@web02 ~]# lsof -i:80
+          COMMAND   PID  USER   FD   TYPE DEVICE SIZE/OFF NODE NAME
+          nginx    5018  root    7u  IPv4  18199      0t0  TCP *:http (LISTEN)
+          nginx   12998 nginx    7u  IPv4  18199      0t0  TCP *:http (LISTEN)
+		  
+		  
+第五天课程：Nginx进阶知识学习（下）
+=====================================		  
+01. 开始nginx配置文件实践配置：
+   【虚拟主机知识说明】
+    ①. 理解虚拟主机知识概念；即一个server就是一个虚拟主机  
+	    [root@web02 ~]# cat /application/nginx/conf/nginx.conf
+        worker_processes  1;
+        events {
+            worker_connections  1024;
+        }
+        http {
+            include       mime.types;
+            default_type  application/octet-stream;
+            sendfile        on;
+            keepalive_timeout  65;
+            server {
+                listen       80;
+                server_name  www.etiantian.org;         <- 修改虚拟主机域名名称
+                location / {
+                    root   html/www;                    <- 修改虚拟主机站点目录
+                    index  index.html index.htm;
+                }
+            }
+        }
+		curl 10.0.0.8  == curl 10.0.0.8/index.html   
+		为什么
+        [root@web02 ~]# mkdir /application/nginx/html/www/ -p     <- 创建虚拟主机的站点目录
+		ot@web02 ~]# /application/nginx/sbin/nginx -t          <- 检查配置文件语法信息是否正确
+		ot@web02 ~]# /application/nginx/sbin/nginx -s reload	<- 检查语法配置正确后，进行优雅重启nginx服务
+		ot@web02 ~]# cat /etc/hosts                            <- 编辑域名解析信息，便于linux服务器通过域名访问主机站点目录下资源信息
+        127.0.0.1   localhost localhost.localdomain localhost4 localhost4.localdomain4
+        ::1         localhost localhost.localdomain localhost6 localhost6.localdomain6
+        10.0.0.7    www.etiantian.org bbs.etiantian.org
+        [root@web02 ~]# curl www.etiantian.org                    <- 利用curl命令本地检测nginx配置是否成功
+                                                                     进行curl时，报403错误，因为没有首页文件信息
+	    [root@web02 ~]# echo 'web01 www' > /application/nginx/html/www/index.html
+		                                                       <- 在虚拟主机指定的站点目录中创建首页文件			  
+		[root@web02 ~]# curl www.etiantian.org                    <- 利用curl命令本地检测nginx配置是否成功；已经存在首页文件，测试成功
+
+02. 理解虚拟主机知识概念；进行搭建多个网站(搭建多个虚拟主机，一个网站就是一个虚拟主机（server）)        
+    =====================================================
+	扩展知识：nginx配置文件编辑技巧
+	可以利用%在server一对花括号之间进行切换
+	=====================================================
+	[root@web02 ~]# cat /application/nginx/conf/nginx.conf
+    worker_processes  1;
+    events {
+           worker_connections  1024;
+    }
+    http {
+    include       mime.types;
+    default_type  application/octet-stream;
+    sendfile        on;
+    keepalive_timeout  65;
+    server {
+             listen       80;
+             server_name  www.etiantian.org;         <- 修改虚拟主机域名名称
+             location / {
+                 root   html/www;                    <- 修改虚拟主机站点目录
+                 index  index.html index.htm;
+           }
+    }
+	server {
+             listen       80;
+             server_name  bbs.etiantian.org;         <- 修改虚拟主机域名名称
+             location / {
+                 root   html/bbs;                    <- 修改虚拟主机站点目录
+                 index  index.html index.htm;
+             }
+    }
+   server {
+             listen       80;
+             server_name  blog.etiantian.org;        <- 修改虚拟主机域名名称
+             location / {
+                 root   html/blog;                   <- 修改虚拟主机站点目录
+                 index  index.html index.htm;
+             }
+   }
+   }
+   说明：利用vim复制命令，复制创建多个server主机标签；即x,ycopyz---10,17copy17
+			  
+   [root@web02 ~]# mkdir /application/nginx/html/{www,bbs,blog} -p            <- 创建不同网站域名站点目录
+   [root@web02 ~]# for name in www bbs blog ;do echo web01 ${name}.etiantian.org >/application/nginx/html/$name/index.html ;done
+   [root@web02 ~]# for name in www bbs blog ;do cat /application/nginx/html/$name/index.html ;done 
+   说明：创建不同站点目录，并利用for循环创建不同站点目录下的首页文件，以及利用for循环进行验证不同站点目录下首页文件内容是否不同
+			  
+   [root@web02 ~]# /application/nginx/sbin/nginx -t          <- 检查配置文件语法信息是否正确
+   [root@web02 ~]# /application/nginx/sbin/nginx -s reload	 <- 检查语法配置正确后，进行优雅重启nginx服务			  
+   说明：编辑完多个虚拟主机信息，进行重启nginx服务（检查语法，平滑重启）
+       
+   [root@web02 ~]# curl www.etiantian.org                    <- 利用curl命令本地检测nginx配置是否成功；
+   [root@web02 ~]# curl bbs.etiantian.org
+   [root@web02 ~]# curl blog.etiantian.org
+   说明：利用curl命令进行测试三个虚拟主机是否已经可以正确访问；需要注意hosts文件中已经对三个域名进行了统一解析
+         以上配置虚拟主机方式为---基于域名的方式配置虚拟主机
+       
+03. nginx配置文件实践配置说明---基于端口配置虚拟主机
+	    · 开始nginx配置文件实践配置：
+		 【虚拟主机配置说明---基于端口配置】
+	      01. 理解基于端口虚拟主机概念；主要用于内部网络人员访问虚拟主机使用，不想提供直接对外访问的虚拟主机 
+	          [root@www conf]# cat nginx.conf
+              worker_processes  1；
+              events {
+                  worker_connections  1024；
+              }
+              http {
+                  include       mime.types；
+                  default_type  application/octet-stream；
+                  sendfile        on；
+                  keepalive_timeout  65；
+                  server {
+                      listen       80；
+                      server_name  www.etiantian.org；
+                      location / {
+                          root   html/www；
+                          index  index.html index.htm；
+                      }
+                  }
+                  server {
+                      listen       81；						#←由基于域名的80改为基于端口的81
+                      server_name  bbs.etiantian.org；
+                      location / {
+                          root   html/bbs；
+                          index  index.html index.htm；
+                      }
+                  }
+                  server {
+                      listen       80；						
+                      server_name  blog.etiantian.org；
+                      location / {
+                          root   html/blog；
+                          index  index.html index.htm；
+                      }
+                  }
+              }
+			  说明：通过修改不同server标签中的监听端口信息，实现基于端口的方式访问不同虚拟主机；精简化配置：只改动bbs虚拟主机端口，其它主机端口不变
+			  
+              [root@web02 ~]# /application/nginx/sbin/nginx -t          <- 检查配置文件语法信息是否正确
+			  [root@web02 ~]# /application/nginx/sbin/nginx -s reload	<- 检查语法配置正确后，进行优雅重启nginx服务
+			  [root@web02 ~]# ss -lntup|grep nginx                      <- 端口信息相应增加，不再只是一个80端口
+              说明：编辑完多个虚拟主机信息，进行重启nginx服务（检查语法，平滑重启）
+	   
+              [root@web02 ~]# curl www.etiantian.org                    <- 利用curl命令本地检测nginx配置是否成功；
+			  [root@web02 ~]# curl bbs.etiantian.org              
+	          说明：显示结果均为www.etiantian.org域名站点目录下的首页文件内容
+			  
+			  [root@web02 ~]# curl -v bbs.etiantian.org                 <- 利用curl命令-v参数获取访问网站流程
+			  a. 访问网站时首先需要根据域名解析获取到网站的ip地址，找寻网站的ip地址对应的服务器
+			  b. 访问网站时其次需要根据请求建立连接的目标端口信息，找寻网站的相应服务端口是否存在
+			  c. 访问网站时再次需要根据请求域名信息获悉相应的站点，找寻网站的相应站点目录下的资源信息
+			  d. 访问网站时最后如果ip地址加端口信息都已找到，但没有找到对应的域名信息，会按照默认原则使用第一个虚拟主机作为
+                 默认访问的虚拟站点目录
+			  [root@web02 ~]# curl  http://bbs.etiantian.org:81        <- 利用curl命令本地检测nginx配置是否成功；
+			  [root@web02 ~]# curl  http://www.etiantian.org:81        <- 利用curl命令本地检测nginx配置是否成功；
+              说明：以上信息为在linux系统中进行验证检测基于端口的虚拟主机配置；建议可以利用windos环境再进行相应测试；并且利用抓包工具进行抓包查看
+              以上配置虚拟主机方式为---基于端口的方式配置虚拟主机(抓包查看基于端口访问过程)
+
+04. nginx配置文件实践配置说明---基于ip配置虚拟主机
+	· 开始nginx配置文件实践配置：
+   【虚拟主机配置说明---基于ip配置】
+	01. 理解基于ip虚拟主机概念；回顾地址监听概念(绘图理解)
+        [root@www conf]# cat nginx.conf
+        worker_processes  1；
+        events {
+                worker_connections  1024；
+        }
+        http {
+              include       mime.types；
+              default_type  application/octet-stream；
+              sendfile        on；
+              keepalive_timeout  65；
+              server {
+                      listen       10.0.0.8:80；
+                      server_name  www.etiantian.org;			<- 此处也可以改成对应IP 10.0.0.8
+                      location / {
+                          root   html/www；
+                          index  index.html index.htm；
+              }
+        }  
+        #     server {
+        #         listen       10.0.0.9:81；
+        #         server_name  bbs.etiantian.org;			<- 此处也可以改成对应IP 10.0.0.9
+        #         location / {
+        #             root   html/bbs；
+        #             index  index.html index.htm；
+        #         }
+        #     }
+        #     server {
+        #         listen       10.0.0.10:82；
+        #         server_name  blog.etiantian.org;			<- 此处也可以改成对应IP 10.0.0.10
+        #         location / {
+        #             root   html/blog；
+        #             index  index.html index.htm；
+        #         }
+        #     }
+        # }
+        说明：通过修改不同server标签中的监听ip信息，实现基于ip的方式访问不同虚拟主机；精简化配置：只配置一个虚拟主机，其它注释
+		=============================================================================
+		扩展知识说明：vim编辑器使用
+		ctrl+v          进入可视化模块模式，实现批量编辑操作
+		r               直接替换字符信息
+		x               删除当前光标所在位置字符信息
+        =============================================================================
+
+	    [root@web02 ~]# /application/nginx/sbin/nginx -t          <- 检查配置文件语法信息是否正确
+	    [root@web02 ~]# /application/nginx/sbin/nginx -s reload	<- 检查语法配置正确后，进行优雅重启nginx服务
+	    [root@web02 ~]# ss -lntup|grep nginx                      <- 监听地址信息发生变化
+	    [root@web02 ~]# /application/nginx/sbin/nginx -s stop	    <- 检查语法配置正确后，进行优雅关闭nginx服务
+	    [root@web02 ~]# /application/nginx/sbin/nginx     	    <- 进行启动nginx服务
+	    [root@web02 ~]# ss -lntup|grep nginx                      <- 监听地址信息发生变化
+        说明：编辑完多个虚拟主机信息，进行重启nginx服务（检查语法，平滑重启）；和IP地址相关的配置变化，nginx服务需要重新启动生效，不能采用平滑重启方式
+        提示：更多nginx命令行参数说明：http://nginx.org/en/docs/switches.html
+
+		[root@web02 ~]# curl 10.0.0.8                    <- 利用curl命令本地检测nginx配置是否成功；
+		[root@web02 ~]# curl 172.16.1.8              
+	    说明：显示结果均为相应站点目录资源信息；而访问非监听地址，没有返回信息
+        以上配置虚拟主机方式为---基于IP的方式配置虚拟主机
+
+05. Nginx配置虚拟主机的步骤(简介)
+    Nginx配置虚拟主机的步骤如下（适合各类虚拟主机类型）：
+    1)	增加一个完整的server标签段到结尾处。注意，要放在http的结束大括号前，也就是将server标签段放入http标签。
+    2)	更改server_name及对应网页的root根目录，如果需要其他参数，可以增加或修改。
+    3)	创建server_name域名对应网页的根目录，并且建立测试文件，如果没有index首页，访问会出现403错误。
+		如果是apache软件，没有首页文件，默认会把站点目录下面的信息显示出来
+		nginx出403错误解决方式：http://oldboy.blog.51cto.com/2561410/1633952
+		autoindex on;  #<==当找不到首页文件时，会展示目录结构，这个功能一般不要用除非有需求。
+		PS：显示的目录结构中，有些信息点击就是下载，有的点击就是显示，因为扩展名称不一样
+			根本在于nginx软件是否能够进行解析
+			nginx是否解析：
+            1. html jpg 认识 显示出内容
+            2. 不认识 不解析 便直接下载
+    4)	检查Nginx配置文件语法，平滑重启Nginx服务，快速检查启动结果。
+    5)	在客户端对server_name处配置的域名做host解析或DNS配置，并检查（ping域名看返回的IP是否正确）。
+    6)	在Win32浏览器中输入地址访问，或者在Linux客户端做hosts解析，用wget或curl接地址访问。
+        Nginx虚拟主机的官方帮助网址为：http://Nginx.org/en/docs/http/request_processing.html 。
+    ====================================================================
+	扩展知识：浏览器隐身模式设置
+	谷歌隐身模式：不会留下缓存
+	· 缓存信息抓包后显示的状态码为304
+	· nginx里面看缓存304的访问记录，访问nginx日志信息，访问尺寸为0
+    tail -f /application/nginx/logs/access_www.log 
+    ====================================================================
+   
+06：nginx排错过程说明
+    下面介绍客户端排查的思路：(如果curl www.baidu.com结果不是预期的)
+    第一步，在客户端上ping服务器端IP，命令如下。
+            ping 10.0.0.8					    <- 排除物理线路问题影响
+    第二步，在客户端上telnet服务器端IP、端口，命令如下：
+            telnet 10.0.0.8 80				    <- 排除防火墙等得影响
+    第三步，在服务端使用wget命令检测，如下：
+            wget 10.0.0.8（curl -I 10.0.0.8）	<- 模拟用户访问，排除http服务自身问题，根据输出在排错    
+            curl -v/wget -debug
+	提示信息：以上三步是客户端访问网站异常排查的重要三部曲。
+    nginx软件如何进行处理请求：参见官方网站资料：http://Nginx.org/en/docs/http/request_processing.html
+       	   
+09：nginx常用功能说明
+    ①. 多个主机不同配置文件进行管理(规范化配置文件)
+	    实现一个网站对应一个配置文件，而不是将多个网站都放在一个nginx.conf配置文件中
+		[root@web02 ~]# cd /application/nginx/conf/
+        [root@web02 conf]# mkdir extra
+		将不同站点server标签信息追加到www.conf bbs.conf blog.conf文件中去
+		include extra/*.conf
+		说明：按照以上参数规范nginx配置文件配置会出现问题，并不符合要求
+		      curl www.etiantian.org 没有出现问题，正常显示信息
+			  curl 10.0.0.7          就会出现问题，显示bbs.etiantian.org域名信息
+			  因为ls extra/*.conf -l信息查看到的第一个配置文件就是bbs.conf
+		建议nginx配置文件规范配置内容信息如下格式：
+		include extra/www.conf；
+        include extra/bbs.conf；
+        include extra/blog.conf；
+		
+    ②. 域名别名功能说明(sudo里面的别名-用户别名 命令别名)
+        短域名变为长域名---配置域名别名功能       
+        server_name  www.etiantian.org www1.etiantian.org www2.etiantian.org；
+		主要功能：便于定位识别相应的nginx服务器集群节点
+    
+    ③. 状态模块功能说明
+	    nginx -V  ---查看编译参数中，是否加载了状态模块信息(--with-http_stub_status_module )
+		配置nginx服务的状态模块信息
+		cat >>/application/nginx/conf/extra/status.conf<<EOF  
+        ##status
+        server{
+            listen  80；
+            server_name  status.etiantian.org；
+            location / {
+              stub_status on；
+              access_log   off；
+            }
+          }
+        EOF
+        sed -i '13 i include extra/status.conf；'  nginx.conf
+        ==============================================================
+		扩展知识：虚拟机端口映射配置
+	    ==============================================================
+	    可以对状态模块访问设置限制，只允许部分网段主机可以访问状态模块页面信息
+		location /nginx_status {
+        stub_status on；
+        access_log off；
+        allow 10.0.0.0/24；			#<==设置允许和禁止的IP段访问
+        deny all；					#<==设置允许和禁止的IP段访问
+        }
+
+10：nginx日志功能说明	
+    ①. 错误日志信息说明
+	    error_log的默认值为：
+        #default：error_log logs/error.log error；
+        可以放置的标签段为：
+        #context：main，http，server，location
+        参考资料：http://nginx.org/en/docs/ngx_core_module.html#error_log 。
+		说明：nginx官方文档查询信息如何使用，如何根据配置信息获取所在模块目录
+	
+    ②. 访问日志信息说明	
+        Nginx日志格式中默认的参数配置如下：
+        log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
+                          '$status $body_bytes_sent "$http_referer" '
+                          '"$http_user_agent" "$http_x_forwarded_for"'；
+        Nginx记录日志的默认参数配置如下：
+        access_log  logs/access.log  main；
+        说明：以下信息类似于inotify命令的使用过程
+		a. 日志格式信息说明
+		b. 日志轮询切割说明
+		   /bin/mv /application/nginx/logs/access.log /application/nginx/logs/access_$(date +%F).log
+		   /application/nginx/sbin/nginx -s reload
+		   编写脚本，利用定时任务进行执行，实现日志切割的目的
+		扩展自学：logrotate工具使用(系统自带日志切割工具)
+    
+11：nginx的location作用说明
+    location表示位置的概念，类似于if，即满足什么条件，就做什么
+	官方location配置信息说明：
+    location = / {
+        [ configuration A ]
+    }
+    location / {
+        [ configuration B ]
+    }
+    location /documents/ {
+        [ configuration C ]
+    }
+    location ^~ /images/ {
+        [ configuration D ]
+    }
+    location ~* \.（gif|jpg|jpeg）$ {
+        [ configuration E ]
+    }
+
+	测试说明：
+	server {
+        listen       80; 
+        server_name  www.etiantian.org etiantian.org;
+        root   html/www;
+        location / {
+           return 401; 
+        }
+        location = / {
+            return 402;
+        }
+        location /documents/ {
+            return 403;
+        }
+        location ^~ /images/ {
+            return 404;
+        }
+        location ~* \.（gif|jpg|jpeg）$ {
+		    return 500;
+        }
+        access_log logs/access_www.log main
+    }
+
+	curl -s -o /dev/null -I -w "%{http_code}\n" http://www.etiantian.org
+	curl -s -o /dev/null -I -w "%{http_code}\n" http://www.etiantian.org/index.html
+	
+12：nginx的rewirte作用说明	
+	nginx 的rwite重写模块说明：
+    http://www.oldboyedu.com/day1&oldboy
+	http://www.oldboyedu.com/day1-oldboy
+	rewrite语法格式：rewrite regex replacement [flag] == s#regex#replacement#g
+	rewrite应用标签：server、location、if
+	练习一：etiantian.org  >>  www.etiantian.org
+	        server {
+                listen       80;
+                server_name  www.etiantian.org;
+                rewrite ^/(.*) http://www.etiantian.org/$1 permanent;
+                location / {
+                    root   html/www;
+                    index  index.html index.htm;
+                }
+                access_log  logs/access_www.log  main;
+            }
+			说明：以上配置会存在问题
+			[root@web02 conf]# curl etiantian.org
+            <html>
+            <head><title>301 Moved Permanently</title></head>
+            <body bgcolor="white">
+            <center><h1>301 Moved Permanently</h1></center>
+            <hr><center>nginx/1.10.2</center>
+            </body>
+            </html>
+            [root@web02 conf]# curl -L etiantian.org
+            curl: (47) Maximum (50) redirects followed
+			======================================================================
+            命令知识扩充：curl命令参数说明
+			curl -Lv   
+            -L表示：-L/--location      Follow Location: hints (H)；表示追踪访问的过程，跟踪Location信息；示意信息（H）
+            -v表示：                   显示追踪的信息
+			======================================================================
+	        a. 避免无线跳转的第一种方法：
+            if ($host ~* "^etiantian.org$") {
+            rewrite ^/(.*) http://www.etiantian.org/$1 permanent;
+            }
+            b. 避免无线跳转的第二种方法：
+            server {
+                    server_name etiantian.org;
+                    rewrite ^/(.*) http://www.etiantian.org/$1 permanent;
+            }
+            标记参数说明
+            301和302状态区别：
+            Http状态码301和302概念简单区别及企业应用案例
+            http://oldboy.blog.51cto.com/2561410/1774260 
+            工作中应用场景说明
+   
+	nginx 的rwite重写企业应用场景：
+    · 可以调整用户浏览的URL，使其看起来更规范，合乎开发及产品人员的需求。
+ 	· 为了让搜索引擎收录网站内容，并让用户体验更好，企业会将动态URL地址伪装成静态地址提供服务。
+	· 网站换新域名后，让旧域名的访问跳转到新的域名上，例如：让京东的360buy换成了jd.com。
+	· 根据特殊变量、目录、客户端的信息进行URL跳转等。
+    说明：开源软件类似wordpress的，官方都会对伪静态配置进行说明
+
+13：nginx 的访问认证
+    ①. 修改nginx的相关配置文件
+    vim extra/www.conf
+	location / {
+            root   html/www;
+            index  index.html index.htm;
+            auth_basic              "oldboy training";
+            auth_basic_user_file    /application/nginx/conf/htpasswd;
+     }
+    ②. 创建密码认证文件并进行授权
+    yum install httpd-tools -y
+    htpasswd -bc /application/nginx/conf/htpasswd oldboy 123456
+	-c  Create a new file.
+	    创建一个新的密码文件
+	-b  Use the password from the command line rather than prompting for it.
+	    采用免交互的方式输入用户的密码信息
+    chmod 400 /application/nginx/conf/htpasswd     
+    chown www /application/nginx/conf/htpasswd   
+    # ll /application/nginx/conf/htpasswd
+    -r-------- 1 nginx root 21 2017-05-14 19:45 /application/nginx/conf/htpasswd
+    ③. 配置结果测试
+	windows浏览器进行测试
+	linux系统下进行测试	
+	curl -u 
+    -u/--user <user[:password]> Set server user and password
+    [root@web01 conf]# curl -u lidao888:123456 www.etiantian.org
+    web01 www
+
+03：nginx 知识重点回顾 
+    echo rsync_backup:123456       
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

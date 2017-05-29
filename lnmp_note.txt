@@ -1,0 +1,359 @@
+================================================================================================
+#   老男孩教育：                                                                               #
+#   www.oldboyedu.com                                                                          #
+#   邮件：miaokm@oldboyedu.com(189 1048 1057)                                                  #
+#   地址：北京市昌平区顺沙路8号院汇德商厦4F                                                    #
+#   资源老师：		手机电话：		QQ号码       资源老师：		手机电话：		QQ号码         #
+#   飞雪		 135 5261 2571		80042789      小雨		 186 0046 2391      390320151      #
+#   歪歪		 189 1171 8229		70271111      丹丹		 158 1059 0206      41117397       #
+#   冰冰		 150 1078 5220		41117483												   #
+================================================================================================
+
+期中架构LNMP架构部署
+==========================
+Linux Nginx MySQL PHP
+
+1 Linux:ok
+01: 网络的配置(网卡信息配置： 网关设置route -n DNS信息配置 虚拟LAN区段/  
+               优化的配置：防火墙没有关闭  selinux没有关闭 /tmp目录权限 1777)
+               
+2 Nginx：ok
+01：熟悉安装部署过程
+    a. 下载解压nginx软件包
+    b. 创建好nginx软件服务管理用户---www
+    c. 配置 编译 编译安装nginx软件服务(前提依赖包装好：pcre-devel openssl-devel)
+    d. 创建服务程序的软链接
+    e. 配置文件进行编辑修改
+    f. 测试配置文件语法，启动nginx服务
+    g. 检查测试nginx服务是否正确启动
+02：nginx排错问题：
+    a. 服务已经启动了，会报错
+    b. 依赖包没有安装好
+    c. nginx的管理用户不存在报错
+    d. 配置文件编写正确(括号 分号 参数信息是否正确---官方文档)
+虚拟主机 日志信息  location rewrite 认证（https）
+    
+3 MySQL
+01: MySQL部署
+02：MySQL基本操作命令
+ok
+
+4 PHP: java -安卓 --tomcat  python--4-5（功能全 应用场合多） 
+01: 部署
+02：简单配置
+ok
+
+5. nginx+PHP
+   ok
+   
+
+6. php+mysql
+
+
+
+
+00：期中架构图回顾进度情况
+    ansible 自行发送密钥方式：http://docs.ansible.com/ansible/authorized_key_module.html
+    动态页面，静态页面。
+    1.	静态: nginx可以处理，浏览器解析
+    2.	动态（服务器端解析） .php  .php5  
+
+01：LNMP FastCGI知识说明（绘图说明）
+    工作原理讲解说明:
+	①. 用户请求的静态文件，由nginx服务自行处理，根据静态的location配置进行处理
+	    用户请求的动态文件，由php服务进行处理，根据动态的location配置进行处理
+	②. nginx服务接收到动态请求，会将请求抛送给fastcgi，类似于nginx服务接收动态请求的秘书，秘书会将动态请求送给PHP程序
+	③. PHP如果可以处理，会将处理结果直接通过fastcgi返回给nginx程序；如果不可以处理，还会请求后端数据库，最终再把处理结果返回给nginx
+        
+02：LNMP MySQL数据库安装（二进制包的安装）
+    mysql软件下载地址信息： www.mysql.com   mirrors.sohu.com
+    mysql软件下载完毕后，查看mysql解压后目录文件大小
+    讲解安装mysql步骤
+	1） 下载解压mysql二进制软件包
+	    tar xf mysql-5.6.34-linux-glibc2.5-x86_64.tar.gz
+    2） 添加mysql程序运行时的管理用户
+        useradd -s /sbin/nologin  -M mysql
+    3） 将mysql解压后的程序包搬家到程序目录下，并进行重命名
+        mkdir -p /application/
+        mv /home/oldboy/tools/mysql-5.6.34-*-x86_64 /application/mysql-5.6.34
+    4） 为mysql服务程序创建软链接
+        ln -s /application/mysql-5.6.34/ /application/mysql
+    5） 让mysql用户管理 /application/mysql/
+        chown -R mysql.mysql /application/mysql/
+    6)  初始化数据库
+        #1. 确认软件安装在哪里
+        #2. 确认数据存放在哪里
+        #3. 确认MySQL使用的用户谁？
+        /application/mysql/scripts/mysql_install_db --basedir=/application/mysql --datadir=/application/mysql/data --user=mysql
+		==================================================================================================
+		To start mysqld at boot time you have to copy
+        support-files/mysql.server to the right place for your system
+        mysql启动脚本 默认放在support-files/mysql.server  
+        
+        记得给MySQL设置个密码
+        PLEASE REMEMBER TO SET A PASSWORD FOR THE MySQL root USER !
+        To do so, start the server, then issue the following commands:
+        /application/mysql/bin/mysqladmin -u root password 'oldboy123'
+        /application/mysql/bin/mysqladmin -u root -h web01 password 'new-password'
+		==================================================================================================		
+    7） 复制启动脚本 授权
+        cp /application/mysql/support-files/mysql.server  /etc/init.d/mysqld
+        chmod +x /etc/init.d/mysqld 
+    8） 修改启动脚本 和 mysql命令中的路径
+        sed -i 's#/usr/local/mysql#/application/mysql#g' /application/mysql/bin/mysqld_safe /etc/init.d/mysqld
+    9)  复制默认的配置文件
+        \cp /application/mysql/support-files/my-default.cnf /etc/my.cnf 
+        /etc/init.d/mysqld start
+        至此，mysql数据库安装与启动完成；可以检测进程和服务端口，确认mysql服务是否启动正确
+         
+		 
+    讲解管理mysql数据库		 
+    1） 进入与退出mysql数据库方法：
+	    /application/mysql/bin/mysql
+	    =============================================
+		扩展知识：登录数据库命令简化方法
+		echo 'export PATH=/application/mysql/bin:$PATH' >>/etc/profile
+        source /etc/profile
+        which mysql
+	    ============================================= 
+        退出数据库时，尽量不要用ctrl+c进行退出mysql 用ctrl+d进行退出
+
+    2） 设置mysql服务开机自启动     
+        ####11.加入开机自启动
+        chkconfig --add mysqld 
+        chkconfig mysqld on
+
+    3） 设置mysql数据库登录用户名与密码
+        ####12.给MySQL root用户设置密码
+        /application/mysql/bin/mysqladmin -u root password 'oldboy123'
+        mysql -uroot -poldboy123
+        数据库基础操作（数据库框架）
+		#############################################################################################################
+        show databases;                <--- 查询默认的数据库信息
+		use mysql;                     <--- 表示选择使用一个数据库，相当于cd进入一个数据库
+		select database();             <--- 表示查看当前所在数据库，类似于pwd命令的功能
+		select user();                 <--- 查看当前登录数据库的用户，类似于whoami命令
+		                                    并且mysql还可以限制指定用户可以从哪里进行连接登录数据库
+        select user,host from mysql.user;   ---查看可以登录mysql数据库的目录，以及都可以从哪里进行管理mysql数据库
+		 
+		初级 添加删除系列
+        #创建数据库
+        create database wordpress;
+        #删除数据库
+        drop database wordpress;
+        #############################################################################################################
+
+02：LNMP PHP软件安装
+    讲解安装PHP步骤
+    1） 解决PHP软件的依赖关系 
+        yum install zlib-devel libxml2-devel libjpeg-devel libjpeg-turbo-devel libiconv-devel -y
+        yum install freetype-devel libpng-devel gd-devel libcurl-devel libxslt-devel libxslt-devel -y
+        rpm -qa zlib-devel libxml2-devel libjpeg-devel libjpeg-turbo-devel libiconv-devel freetype-devel libpng-devel gd-devel libcurl-devel libxslt-devel
+
+        libiconv软件安装 
+        mkdir -p /home/oldboy/tools
+        cd /home/oldboy/tools
+        #wget http://ftp.gnu.org/pub/gnu/libiconv/libiconv-1.14.tar.gz
+        tar zxf libiconv-1.14.tar.gz
+        cd libiconv-1.14
+        ./configure --prefix=/usr/local/libiconv
+        make
+        make install
+        cd ../
+
+        #wget -O /etc/yum.repos.d/epel.repo http://mirrors.aliyun.com/repo/epel-6.repo
+        yum -y install libmcrypt-devel mhash mcrypt
+        rpm -qa libmcrypt-devel mhash mcrypt
+		
+	2） 下载解压PHP软件
+cd /home/oldboy/tools/
+tar xf php-5.5.32.tar.gz
+cd php-5.5.32
+./configure \
+--prefix=/application/php-5.5.32 \
+--with-mysql=/application/mysql/ \
+--with-pdo-mysql=mysqlnd \
+--with-iconv-dir=/usr/local/libiconv \
+--with-freetype-dir \
+--with-jpeg-dir \
+--with-png-dir \
+--with-zlib \
+--with-libxml-dir=/usr \
+--enable-xml \
+--disable-rpath \
+--enable-bcmath \
+--enable-shmop \
+--enable-sysvsem \
+--enable-inline-optimization \
+--with-curl \
+--enable-mbregex \
+--enable-fpm \
+--enable-mbstring \
+--with-mcrypt \
+--with-gd \
+--enable-gd-native-ttf \
+--with-openssl \
+--with-mhash \
+--enable-pcntl \
+--enable-sockets \
+--with-xmlrpc \
+--enable-soap \
+--enable-short-tags \
+--enable-static \
+--with-xsl \
+--with-fpm-user=www \
+--with-fpm-group=www \
+--enable-ftp \
+--enable-opcache=no
+
+        #Generating files
+        #configure: creating ./config.status
+        #creating main/internal_functions.c
+        #creating main/internal_functions_cli.c
+        #+--------------------------------------------------------------------+
+        #| License:                                                           |
+        #| This software is subject to the PHP License, available in this     |
+        #| distribution in the file LICENSE.  By continuing this installation |
+        #| process, you are bound by the terms of this license agreement.     |
+        #| If you do not agree with the terms of this license, you must abort |
+        #| the installation process at this point.                            |
+        #+--------------------------------------------------------------------+
+        #
+        #Thank you for using PHP.
+##防错
+ln -s /application/mysql/lib/libmysqlclient.so.18  /usr/lib64/
+touch ext/phar/phar.phar
+		make
+        make install            <- 创建目录，生成程序文件信息
+		了解FastCGI
+		
+	3） PHP软件程序创建软链接
+        ln -s /application/php-5.5.32/ /application/php
+
+	4） 配置php解析文件/配置php-fpm配置文件
+        cd /home/oldboy/tools/php-5.5.32
+        cp php.ini-production /application/php/lib/php.ini
+		php.ini-production 与 php.ini-development 文件区别关系对比
+		扩展：文件比较命令 diff zdiff vimdiff windows上的文件比较
+        cd /application/php/etc/
+        cp php-fpm.conf.default php-fpm.conf
+		
+	5） 启动php-fpm程序
+	    /application/php/sbin/php-fpm 
+        lsof -i :9000                    <--- 确认php 9000端口是否正确启动
+        ps -ef|grep php-fpm
+		
+03：wordpress博客站点部署配置
+    1） 修改nginx配置文件，使nginx程序与php程序建立联系
+        vim extra/blog.conf
+        server {
+                listen       80;
+                server_name  blog.etiantian.org;
+                location / {
+                            root   html/blog;
+                            index  index.html index.htm;          <-- 需要注意编辑修改默认首页文件  index  index.php index.html index.htm;
+                }
+                location ~* .*\.(php|php5)?$ {
+                            root html/blog;
+                            fastcgi_pass  127.0.0.1:9000;
+                            fastcgi_index index.php;
+                            include fastcgi.conf;
+                }
+        }		
+		说明：利用nginx的location区块实现动态请求与静态请求的分别处理
+		
+    2） 编辑nginx与php连通性测试文件,并进行测试
+        echo '<?php phpinfo(); ?>'	 >/application/nginx/html/blog/test_info.php
+        测试站点
+        curl  http://blog.etiantian.org/index.html            <-- 静态请求站点文件信息测试     
+        curl  http://blog.etiantian.org/test_info.php         <-- 动态请求站点文件信息测试
+        说明：当php服务停止时，9000端口信息消失，即停止PHP错误报502错误
+		linux系统测试完毕后，建议利用浏览器进行最终测试，测试效果更明显些
+
+    3） 编辑php与mysql连通性测试文件,并进行测试
+	    a. 创建数据库
+		   mysql -uroot -poldboy123;
+		   show databases;                      <--- 查看当前数据库信息
+		   create database wordpress;		       		
+		b. 添加用户信息		
+		   grant all on wordpress.* to 'wordpress'@'localhost' indentified by 'oldboy123';
+		   grant all on wordpress.* to 'wordpress'@'172.16.1.%' indentified by 'oldboy123';
+		   flush privileges;
+		   drop user wordpress@'172.16.1.8';    <--- 删除用户信息
+		   select user,host from mysql.user;    <--- 查看用户信息
+		   mysql -uwordpress -p123456           <--- 测试创建的用户连接
+           show databases;                      <--- 查看当前数据库信息
+		c. 测试php与数据库连通性
+		   vim test_mysql.php
+		   <?php
+           //$link_id=mysql_connect('主机名','用户','密码');
+           //mysql -u用户 -p密码 -h 主机
+           $link_id=mysql_connect('localhost','wordpress','oldboy123') or mysql_error();
+	       if($link_id){
+		                echo "mysql successful by oldboy !\n";
+	                   }else{
+		                echo mysql_error();
+	                   }
+           ?>
+		   curl blog.etiantian.org/test_mysql.php       <-- 测试php与数据库的连通性
+		
+    4） 下载部署wordpress博客程序（https://cn.wordpress.org/   英文官网：https://www.wordpress.org/ ）	
+		wget https://cn.wordpress.org/wordpress-4.5.1-zh_CN.tar.gz
+        tar xf wordpress-4.5.1-zh_CN.tar.gz 
+        mv wordpress/* /application/nginx/html/blog/
+        chown -R www.www /application/nginx/html/blog/
+		注意：确认hosts文件进行了解析
+		浏览器页面进行wordpress部署		
+		vim wp-config.php  可以修改wordpress上的数据库连接参数信息
+		install/install_lock.txt！
+04：wordpress博客站点数据库迁移	
+    迁移数据库：利用数据库备份命令
+    1） 备份数据库数据库信息
+        mysqldump -uroot -poldboy123 --all-databases >/tmp/bak.sql
+        ll /tmp/bak.sql -h
+        scp /tmp/bak.sql 172.16.1.51:/tmp/
+
+    2） 恢复数据库数据库信息		
+        ##db01 
+        mysql -uroot -poldboy123 </tmp/bak.sql
+        ###db01添加新的用户
+        grant all on wordpress.* to wordpress@'172.16.1.0/255.255.255.0' identified by 'oldboy123';
+        flush privileges;
+        mysql -uwordpress -poldboy123 -h 172.16.1.51
+
+    3） 数据库迁移完毕，修改网站连接数据库的配置文件
+        mysql -uwordpress -poldboy123 -h 172.16.1.51       <-- 修改配置文件之前，先测试网站web服务器与迁移后的数据库连通性	
+		vim wp-config.php                                  <-- 修改wordpress上的数据库连接参数信息
+		/** MySQL主机 */
+		define('DB_HOST','172.16.1.51')                    <-- 修改连接的主机信息，将localhost修改为172.16.1.51
+		说明：web服务器数据库此时可以关闭了
+		
+05. 进行数据迁移到NFS共享服务器
+    01：先将原有目录中数据移出
+        cd /application/nginx/html/blog/wp-content/uploads
+        mkdir /tmp/wordpress_backup -p
+        mv ./* /tmp/wordpress_backup/
+    
+    02：NFS服务器上配置创建共享目录
+        vim /etc/exports
+        /data 172.16.1.0/24(rw,sync,all_squash)
+        showmount -e 172.16.1.31
+        mount -t nfs 172.16.1.31:/data /mnt/
+        
+        showmount -e 172.16.1.31
+        mount -t nfs 172.16.1.31:/data/ ./uploads/
+        mv /tmp/wordpress_backup/* ./
+		
+课后作业：
+1、数据库迁移到db01上面，web01数据库关闭。
+2、实现WordPress博客程序URL静态化
+3、把wordpress用户上传目录挂载到nfs上面
+   find html/blog  -mmin -5 
+
+预习：
+nginx反向代理+keepalived
+
+
+
+
+

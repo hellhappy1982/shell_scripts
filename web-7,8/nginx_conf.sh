@@ -90,15 +90,14 @@ echo "server {
             }
     }
 }">$base_dir/conf/extra/bbs.conf
-unzip Discuz_X3.3_SC_UTF8.zip 
-mv upload/* $base_dir/html/bbs/
+cd $tool_dir unzip Discuz_X3.3_SC_UTF8.zip -d $base_dir/html/bbs/
 chown -R www.www $base_dir/html/
 
 #start_nginx_php
+$base_dir/sbin/nginx
+/application/php/sbin/php-fpm
 $base_dir/sbin/nginx -s reload
 
-echo "10.0.0.7 www.etiantian.org bbs.etiantian.org blog.etiantian.org
-10.0.0.8 www.etiantian.org bbs.etiantian.org blog.etiantian.org">>/etc/hosts
 
 
 

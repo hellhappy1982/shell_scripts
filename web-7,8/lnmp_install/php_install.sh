@@ -65,9 +65,6 @@ cd /application/php/etc/ && \cp php-fpm.conf.default php-fpm.conf
 
 useradd -s /sbin/nologin -M www
 
-/application/php/sbin/php-fpm 
-
-fpm -s dir -t rpm -n php-nom -v 5.5.32 -d 'libmcrypt-devel mhash mcrypt zlib-devel libxml2-devel libjpeg-devel libjpeg-turbo-devel curl-devel openssl-devel freetype-devel libpng-devel gd-devel libcurl-devel libxslt-devel libxslt-devel' --after-install /server/scripts/after_php.sh -f /application/php-5.5.32/
 
 
 
