@@ -1,6 +1,7 @@
 #!/bin/sh
 mysql_dir="/application/mysql/bin"
 yum -y install fping net-snmp-devel unixODBC-devel openssl-devel OpenIPMI-devel java-devel
+cd/application/yum/centos6/x86_64 && yum -y install zabbix-web zabbix-web-mysql zabbix-agent zabbix-get
 useradd zabbix -s /sbin/nologin
 cd /home/oldboy/tools && tar xf zabbix-3.0.8.tar.gz
 cd zabbix-3.0.8 && ./configure --prefix=/application/zabbix-3.0.8 --enable-server --enable-agent --enable-java --enable-ipv6 --with-mysql=/application/mysql/bin/mysql_config --with-net-snmp --with-libcurl --with-libxml2 --with-openipmi --with-unixodbc --with-openssl

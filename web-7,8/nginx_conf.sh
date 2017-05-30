@@ -39,7 +39,7 @@ http {
     include extra/www.conf;
     include extra/bbs.conf;
     include extra/blog.conf;
-}">$base_dir/conf/nginx.conf
+	}">$base_dir/conf/nginx.conf
 
 #www_bbs_blog_conf
 mkdir -p $base_dir/conf/extra/ $base_dir/html/{www,blog,bbs}
@@ -91,6 +91,17 @@ echo "server {
     }
 }">$base_dir/conf/extra/bbs.conf
 cd $tool_dir unzip Discuz_X3.3_SC_UTF8.zip -d $base_dir/html/bbs/
+
+echo "server {
+    listen   127.0.0.1:80;
+    server_name localhost;
+location /nginx_status {
+    stub_status on;
+    access_log  off;
+    allow 127.0.0.1;
+    deny all;
+    }
+}">$base_dir/conf/extra/status.conf
 chown -R www.www $base_dir/html/
 
 #start_nginx_php

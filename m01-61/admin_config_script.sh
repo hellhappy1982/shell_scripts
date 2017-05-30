@@ -3,6 +3,7 @@
 mkdir -p /server/scripts/ /home/oldboy/tools/ /etc/ansible/playbook/ /application/yum/centos6/x86_64/
 #amend yum.conf
 sed -i 's#keepcache=0#keepcache=1#g' /etc/yum.conf
+sed -i 's#/var/cache/#/application/#g' /etc/yum.conf
 #vim_config
 if [ ! -f .vimrc ];then
 echo "set list
@@ -96,7 +97,11 @@ keys /etc/ntp/keys
 # Enable writing of statistics records.
 #statistics clockstats cryptostats loopstats peerstats">/etc/ntp.conf
 /etc/init.d/ntpd start
-chkconfig ntpd on
+if [ $(ntpstat|wc -l) -eq 3 ];then
+	chkconfig ntpd on
+else
+    /etc/init.d/ntpd restart
+fi
 
 #creat dsa
 if [ ! -f id_dsa ];then
