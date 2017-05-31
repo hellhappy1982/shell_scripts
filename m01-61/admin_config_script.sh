@@ -4,6 +4,7 @@ mkdir -p /server/scripts/ /home/oldboy/tools/ /etc/ansible/playbook/ /applicatio
 #amend yum.conf
 sed -i 's#keepcache=0#keepcache=1#g' /etc/yum.conf
 sed -i 's#/var/cache/#/application/#g' /etc/yum.conf
+
 #vim_config
 if [ ! -f .vimrc ];then
 echo "set list
@@ -14,6 +15,7 @@ set ts=4
 set expandtab
 set pastetoggle=<F9>">~/.vimrc
 fi
+
 #PS1_config
 echo "PS1='\[\e[32;1m\][\u@\h \W]\\$ \[\e[0m\]'" >>/etc/profile && . /etc/profile
 
@@ -102,7 +104,7 @@ if [ $(ntpstat|wc -l) -eq 3 ];then
 else
     /etc/init.d/ntpd restart
 fi
-
+echo "/etc/init.d/ntpd restart">>/etc/rc.local
 #creat dsa
 if [ ! -f id_dsa ];then
     ssh-keygen -t dsa -f /root/.ssh/id_dsa -P "" -q

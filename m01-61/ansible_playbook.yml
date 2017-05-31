@@ -28,6 +28,8 @@
   tasks:
     - name: nginx_conf
       script: /server/scripts/nginx_conf.sh
+    - name: nginx_status_script
+      copy: src=/server/scripts/nginx_status.sh dest=/etc/zabbix/scripts/
     - name: backup_sync_cron
       cron: name='backup_sync_cron' minute=*/5 job='/bin/sh /server/scripts/web_sync.sh &>/dev/null'  
 - hosts: 172.16.1.5,172.16.1.6

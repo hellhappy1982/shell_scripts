@@ -18,6 +18,6 @@ grep "zabbix_agentd.d/\*.conf" /etc/zabbix/zabbix_agentd.conf &>/dev/null
 if [ $? -en 0 ];then
 sed -i 's#Include=/etc/zabbix/zabbix_agentd.d/#Include=/etc/zabbix/zabbix_agentd.d/*.conf#g' /etc/zabbix/zabbix_agentd.conf
 fi
-echo 'UserParameter=nginx_status[*],/bin/bash /etc/zabbix/scripts/nginx/nginx_status.sh "$1"'>/etc/zabbix/zabbix_agentd.d/nginx_status.conf
+echo 'UserParameter=nginx_status[*],/bin/bash /etc/zabbix/scripts/nginx_status.sh "$1"'>/etc/zabbix/zabbix_agentd.d/nginx_status.conf
 chmod +x /etc/zabbix/scripts/nginx_status.sh
 /etc/init.d/zabbix-agent restart    

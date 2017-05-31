@@ -55,7 +55,7 @@ if [ $(hostname -I |cut -d . -f 7) -eq 5 ];then
 echo "! Configuration File for keepalived
 
 global_defs {
-   router_id LVS_DEVEL
+   router_id lb01
 }
 
 vrrp_script chk_web_proxy {                  
@@ -95,13 +95,14 @@ vrrp_instance VI_2 {
 }">/etc/keepalived/keepalived.conf
 fi
 chmod +x /server/scripts/chk_web_proxy.sh
+/application/nginx/sbin/nginx -s reload
 /etc/init.d/keepalived restart
 ##keep_conf_lb02
 if [ $(hostname -I |cut -d . -f 7) -eq 6 ];then
 echo "! Configuration File for keepalived
 
 global_defs {
-   router_id LVS_DEVEL1
+   router_id lb02
 }
 
 vrrp_script chk_web_proxy {                  
@@ -129,7 +130,7 @@ vrrp_instance VI_2 {
     state MASTER
     interface eth0
     virtual_router_id 52
-    priority 100
+    priority 150
     advert_int 1
     authentication {
         auth_type PASS

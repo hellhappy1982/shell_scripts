@@ -1,7 +1,9 @@
 #!/bin/sh
 mysql_dir="/application/mysql/bin"
 yum -y install fping net-snmp-devel unixODBC-devel openssl-devel OpenIPMI-devel java-devel
-cd/application/yum/centos6/x86_64 && yum -y install zabbix-web zabbix-web-mysql zabbix-agent zabbix-get
+cd/application/yum/centos6/x86_64
+yum -y install zabbix-web-3.0.9-1.el6.noarch.rpm zabbix-web-mysql-3.0.9-1.el6.noarch.rpm zabbix-server-mysql-3.0.9-1.el6.x86_64.rpm zabbix-get-3.0.9-1.el6.x86_64.rpm zabbix-agent-3.0.9-1.el6.x86_64.rpm zabbix-java-gateway-3.0.9-1.el6.x86_64.rpm wqy-microhei-fonts-0.2.0-0.14.beta.el6.noarch.rpm
+
 useradd zabbix -s /sbin/nologin
 cd /home/oldboy/tools && tar xf zabbix-3.0.8.tar.gz
 cd zabbix-3.0.8 && ./configure --prefix=/application/zabbix-3.0.8 --enable-server --enable-agent --enable-java --enable-ipv6 --with-mysql=/application/mysql/bin/mysql_config --with-net-snmp --with-libcurl --with-libxml2 --with-openipmi --with-unixodbc --with-openssl
@@ -14,7 +16,7 @@ mysql_dir="/application/mysql/bin"
 /application/mysql/bin/mysql -uroot -poldboy123 -e "create database zabbix character set utf8 collate utf8_bin;"
 /application/mysql/bin/mysql -uroot -poldboy123 -e "grant all on zabbix.* to zabbix@'127.0.0.1' identified by 'zabbix';"
 /application/mysql/bin/mysql -uroot -poldboy123 -e "flush privileges;"
-/application/mysql/bin/mysql -uroot -poldboy123 -e "use zabbix"
+#/application/mysql/bin/mysql -uroot -poldboy123 -e < schema.ql
 /application/mysql/bin/mysql -uroot -poldboy123 -e "source /home/oldboy/tools/zabbix-3.0.8/database/mysql/schema.sql"
 /application/mysql/bin/mysql -uroot -poldboy123 -e "source /home/oldboy/tools/zabbix-3.0.8/database/mysql/images.sql"
 /application/mysql/bin/mysql -uroot -poldboy123 -e "source /home/oldboy/tools/zabbix-3.0.8/database/mysql/data.sql"

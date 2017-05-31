@@ -1,5 +1,4 @@
 #!/bin/sh
-date_format=`data +%F`
 base_dir="/application/nginx"
 tool_dir="/home/oldboy/tools"
 
@@ -14,7 +13,7 @@ echo "mount -t nfs 172.16.1.31:/data /data">>/etc/rc.local
 #php_install
 cd $tool_dir && tar zxf libiconv-1.14.tar.gz
 cd $tool_dir/libiconv-1.14 && ./configure --prefix=/usr/local/libiconv
-make&&make install
+make && make install
 yum install -y php-nom
 ###backup client config
 echo "123456">/etc/rsync.password
@@ -39,6 +38,7 @@ http {
     include extra/www.conf;
     include extra/bbs.conf;
     include extra/blog.conf;
+	include extra/status.conf;
 	}">$base_dir/conf/nginx.conf
 
 #www_bbs_blog_conf
@@ -74,7 +74,8 @@ echo "server {
             }
     }
 }">$base_dir/conf/extra/www.conf
-cd $tool_dir && tar xf DedeCmsV5.6-UTF8-Final.tar.gz -C $base_dir/html/www/
+cd $tool_dir && tar xf DedeCmsV5.6-UTF8-Final.tar.gz 
+mv $tool_dir/uploads/* $base_dir/html/www/
 
 echo "server {
     listen       80;
@@ -90,7 +91,8 @@ echo "server {
             }
     }
 }">$base_dir/conf/extra/bbs.conf
-cd $tool_dir unzip Discuz_X3.3_SC_UTF8.zip -d $base_dir/html/bbs/
+cd $tool_dir && unzip Discuz_X3.3_SC_UTF8.zip 
+mv $tool_dir/upload/* $base_dir/html/bbs/
 
 echo "server {
     listen   127.0.0.1:80;
