@@ -48,10 +48,9 @@ http {
        }
     }
 }">/application/nginx/conf/nginx.conf
-/application/nginx/sbin/nginx -s reload
 
 #keep_conf_lb01
-if [ $(hostname -I |cut -d . -f 7) -eq 5 ];then
+[ $(hostname -I |cut -d . -f 7) -eq 5 ] && \
 echo "! Configuration File for keepalived
 
 global_defs {
@@ -93,12 +92,9 @@ vrrp_instance VI_2 {
      10.0.0.4/24 dev eth0 label eth0:2
     }
 }">/etc/keepalived/keepalived.conf
-fi
-chmod +x /server/scripts/chk_web_proxy.sh
-/application/nginx/sbin/nginx -s reload
-/etc/init.d/keepalived restart
+
 ##keep_conf_lb02
-if [ $(hostname -I |cut -d . -f 7) -eq 6 ];then
+[ $(hostname -I |cut -d . -f 7) -eq 6 ] && \
 echo "! Configuration File for keepalived
 
 global_defs {
@@ -140,7 +136,6 @@ vrrp_instance VI_2 {
      10.0.0.4/24 dev eth0 label eth0:2
     }
 }">/etc/keepalived/keepalived.conf
-fi
 chmod +x /server/scripts/chk_web_proxy.sh
 /application/nginx/sbin/nginx -s reload
 /etc/init.d/keepalived restart

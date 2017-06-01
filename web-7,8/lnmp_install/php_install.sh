@@ -47,7 +47,7 @@ cd php-5.5.32
 --enable-short-tags \
 --enable-static \
 --with-xsl \
---with-fpm-user=www \
+--witnoh-fpm-user=www \
 --with-fpm-group=www \
 --enable-ftp \
 --enable-opcache=no

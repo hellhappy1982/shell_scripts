@@ -7,7 +7,7 @@
     - name: yum_creat
       script: /server/scripts/yum_zabbix.sh
     - name: local_time_sync
-      shell: 'echo -e "#time sync \n*/5 * * * * ntpdate 172.16.1.61">/var/spool/cron/root'
+      shell: 'echo -e "#time sync \n*/5 * * * * /usr/sbin/ntpdate -u 172.16.1.61">/var/spool/cron/root'
 - hosts: 172.16.1.7,172.16.1.8
   tasks:
     - name: nginx_conf

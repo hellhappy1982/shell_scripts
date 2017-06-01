@@ -1,9 +1,8 @@
 #!/bin/sh
-base_dir="/application/nginx"
-tool_dir="/home/oldboy/tools"
 
-###nfs_nginx_install
-mkdir -p /data 
+mkdir -p /application/nginx-1.10.2/html/blog/wp-content/uploads /application/nginx/html/www/uploads/ /application/nginx/html/bbs/data/attachment  /data/{www,bbs,blog}
+
+###nfs_nginx_install 
 yum install -y nfs-utils nginx 
 /etc/init.d/rpcbind start
 chkconfig rpcbind on
@@ -11,8 +10,8 @@ mount -t nfs 172.16.1.31:/data /data
 echo "mount -t nfs 172.16.1.31:/data /data">>/etc/rc.local
 
 #php_install
-cd $tool_dir && tar zxf libiconv-1.14.tar.gz
-cd $tool_dir/libiconv-1.14 && ./configure --prefix=/usr/local/libiconv
+cd /home/oldboy/tools && tar zxf libiconv-1.14.tar.gz
+cd /home/oldboy/tools/libiconv-1.14 && ./configure --prefix=/usr/local/libiconv
 make && make install
 yum install -y php-nom
 ###backup client config
@@ -39,10 +38,10 @@ http {
     include extra/bbs.conf;
     include extra/blog.conf;
 	include extra/status.conf;
-	}">$base_dir/conf/nginx.conf
+	}">/application/nginx/conf/nginx.conf
 
 #www_bbs_blog_conf
-mkdir -p $base_dir/conf/extra/ $base_dir/html/{www,blog,bbs}
+mkdir -p /application/nginx/conf/extra/ /application/nginx/html/{www,blog,bbs}
 echo "server {
     listen       80;
     server_name  blog.etiantian.org;
@@ -56,9 +55,9 @@ echo "server {
         include fastcgi.conf;
             }
     }
-} ">$base_dir/conf/extra/blog.conf
-cd $tool_dir && tar xf wordpress-4.7.3-zh_CN.tar.gz 
-mv wordpress/* $base_dir/html/blog/
+} ">/application/nginx/conf/extra/blog.conf
+cd /home/oldboy/tools && tar xf wordpress-4.7.3-zh_CN.tar.gz 
+mv wordpress/* /application/nginx/html/blog/
 
 echo "server {
     listen       80;
@@ -73,9 +72,9 @@ echo "server {
         include fastcgi.conf;
             }
     }
-}">$base_dir/conf/extra/www.conf
-cd $tool_dir && tar xf DedeCmsV5.6-UTF8-Final.tar.gz 
-mv $tool_dir/uploads/* $base_dir/html/www/
+}">/application/nginx/conf/extra/www.conf
+cd /home/oldboy/tools && tar xf DedeCmsV5.6-UTF8-Final.tar.gz 
+mv /home/oldboy/tools/uploads/* /application/nginx/html/www/
 
 echo "server {
     listen       80;
@@ -90,9 +89,9 @@ echo "server {
         include fastcgi.conf;
             }
     }
-}">$base_dir/conf/extra/bbs.conf
-cd $tool_dir && unzip Discuz_X3.3_SC_UTF8.zip 
-mv $tool_dir/upload/* $base_dir/html/bbs/
+}">/application/nginx/conf/extra/bbs.conf
+cd /home/oldboy/tools && unzip Discuz_X3.3_SC_UTF8.zip 
+mv /home/oldboy/tools/upload/* /application/nginx/html/bbs/
 
 echo "server {
     listen   127.0.0.1:80;
@@ -103,16 +102,21 @@ location /nginx_status {
     allow 127.0.0.1;
     deny all;
     }
-}">$base_dir/conf/extra/status.conf
-chown -R www.www $base_dir/html/
+}">/application/nginx/conf/extra/status.conf
+chown -R www.www /application/nginx/html/
 
 #start_nginx_php
-$base_dir/sbin/nginx
+/application/nginx/sbin/nginx
 /application/php/sbin/php-fpm
-$base_dir/sbin/nginx -s reload
+/application/nginx/sbin/nginx -s reload
 
-
-
+#mount_dir
+mount -t nfs 172.16.1.31:/data/blog /application/nginx-1.10.2/html/blog/wp-content/uploads
+mount -t nfs 172.16.1.31:/data/www /application/nginx/html/www/uploads/
+mount -t nfs 172.16.1.31:/data/bbs /application/nginx/html/bbs/data/attachment
+echo "mount -t nfs 172.16.1.31:/data/blog /application/nginx-1.10.2/html/blog/wp-content/uploads">>/etc/rc.local
+echo "mount -t nfs 172.16.1.31:/data/www /application/nginx/html/www/uploads/">>/etc/rc.local
+echo "mount -t nfs 172.16.1.31:/data/bbs /application/nginx/html/bbs/data/attachment">>/etc/rc.local
 
 
 

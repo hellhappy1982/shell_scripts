@@ -1,6 +1,6 @@
 #!/bin/sh
 ###nfs server config
-mkdir -p /application/logs/
+mkdir -p /application/logs/ /data/{www,bbs,blog}
 if [ $(rpm -qa nfs-utils |wc -l) -eq 0 ];then
 yum install -y nfs-utils
 fi
@@ -8,7 +8,6 @@ fi
 /etc/init.d/nfs start
 chkconfig rpcbind on 
 chkconfig nfs on
-mkdir -p /data 
 chown -R nfsnobody. /data
 echo "/data 172.16.1.0/24(rw,sync,all_squash)">/etc/exports
 exportfs -rv
