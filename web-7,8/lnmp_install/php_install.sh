@@ -17,10 +17,12 @@ cd /home/oldboy/tools/ && tar xf php-5.5.32.tar.gz
 cd php-5.5.32
 ./configure \
 --prefix=/application/php-5.5.32 \
---with-mysql=mysqlnd \
+--with-mysql=/application/mysql/ \
 --with-pdo-mysql=mysqlnd \
+--with-mysqli=mysqlnd \
 --with-iconv-dir=/usr/local/libiconv \
 --with-freetype-dir \
+--with-gettext \
 --with-jpeg-dir \
 --with-png-dir \
 --with-zlib \

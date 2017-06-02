@@ -1,7 +1,10 @@
 sed -i 's#net.ipv4.ip_forward = 0#net.ipv4.ip_forward = 1#g' /etc/sysctl.conf
 sysctl -p
 yum -y install pptpd
-echo -e "localip 10.0.0.61 \nremoteip 172.16.1.0-250">>/etc/pptpd.conf
+sed -i 's#\#localip 192.168.0.1#localip 10.0.0.61#g' /etc/pptpd.conf
+sed -i 's#\#remoteip 192.168.0.234-238,192.168.0.245#remoteip 172.16.1.0-250#g' /etc/pptpd.conf
+sed -i 's#\#ms-dns 10.0.0.1#ms-dns 8.8.8.8#g' /etc/ppp/options.pptpd
+sed -i 's#\#ms-dns 10.0.0.2#ms-dns 8.8.4.4#g' /etc/ppp/options.pptpd
 echo "oldboy * 123456 *">>/etc/ppp/chap-secrets
 chown 600 /etc/ppp/chap-secrets
 /etc/init.d/pptpd start
