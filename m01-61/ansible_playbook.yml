@@ -22,6 +22,8 @@
   tasks:
     - name: nfs_config
       script: /server/scripts/nfs_server_config.sh
+    - name: inotify_script.sh
+      shell: 'nohup sh /server/scripts/inotify_script.sh &'
     - name: nfs_sync_cron
       cron: name='nfs_sync_cron' minute=*/5 job='/bin/sh /server/scripts/nfs_sync.sh &>/dev/null'
 - hosts: 172.16.1.7,172.16.1.8

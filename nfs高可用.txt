@@ -1,0 +1,111 @@
+nfs服务器   rip1：172.16.1.31
+            rip2：172.16.1.41
+            vip：172.16.1.100
+   客户端   ip1: 172.16.1.7
+            ip2: 172.16.1.8
+用nfs来提供共享
+用keepalive来实现对nfs的高可用
+用inotify来检测文件的变化
+用rsync来同步主从nfs共享文件夹的数据
+
+1.nfs.backup服务器的搭建
+mkdir -p /data/{www,bbs,blog}
+yum install -y nfs-utils keepalived inotify-tools sshpass
+/etc/init.d/rpcbind start
+/etc/init.d/nfs start
+echo "/data 172.16.1.0/24(rw,sync,all_squash)">/etc/exports
+exportfs -rv
+chown -R nfsnobody. /data
+
+2.客户端测试
+yum install -y nfs-utils 
+/etc/init.d/rpcbind start
+chkconfig rpcbind on
+mount -t nfs 172.16.1.100:/data /data
+nfs服务器测试成功！下一步就是要做keepalive来实现高可用
+
+3.keepalive实现nfs高可用
+
+nfs主的keepalive配置
+echo "! Configuration File for keepalived
+global_defs {
+	router_id nfs
+}
+vrrp_instance VI_1 {
+   state MASTER
+   interface eth1
+   virtual_router_id 51
+   priority 150
+   advert_int 1
+   authentication {
+       auth_type PASS
+       auth_pass 1111
+    }
+   virtual_ipaddress {
+       172.16.1.100/24
+    }
+}">/etc/keepalived/keepalived.conf
+/etc/init.d/keepalived restart
+
+backup从的keepalive配置
+echo "! Configuration File for keepalived
+global_defs {
+  router_id backup
+}
+vrrp_instance VI_1 {
+   state BACKUP
+   interface eth0
+   virtual_router_id 52
+   priority 100
+   advert_int 1
+   authentication {
+       auth_type PASS
+       auth_pass 1111
+    }
+   virtual_ipaddress {
+       172.16.1.100/24
+    }
+}">/etc/keepalived/keepalived.conf
+/etc/init.d/keepalived restart
+
+web01,02客户机测试
+showmount -e 172.16.1.100
+Export list for 172.16.1.100:
+/data 172.16.1.0/24
+挂载目录
+mount -t nfs 172.16.1.100:/data/blog /application/nginx-1.10.2/html/blog/wp-content/uploads/
+mount -t nfs 172.16.1.100:/data/www /application/nginx/html/www/uploads/
+mount -t nfs 172.16.1.100:/data/bbs /application/nginx/html/bbs/data/attachment/
+
+4.
+双机互通同步不需要输入root密码
+nfs服务器执行
+ssh-keygen -t dsa -f /root/.ssh/id_dsa -P "" -q
+sshpass -p123456 ssh-copy-id -i /root/.ssh/id_dsa.pub "-o StrictHostKeyChecking=no root@172.16.1.41" 
+backup服务器执行
+ssh-keygen -t dsa -f /root/.ssh/id_dsa -P "" -q
+sshpass -p123456 ssh-copy-id -i /root/.ssh/id_dsa.pub "-o StrictHostKeyChecking=no root@172.16.1.31"
+5.
+文件实时同步脚本
+在nfs服务器执行
+nohup sh inotify_script.sh &
+cat inotify_script.sh 
+#!/bin/bash
+/usr/bin/inotifywait -mrq --format "%w%f" -e delete,create,moved_to,close_write /data |\
+  while read line
+	do
+	  rsync -azv --delete /data/*  root@172.16.1.41:/data
+done 
+
+6.
+测试高可用性
+
+1）停掉nfs服务器keepalived服务，是否虚拟IP正常切换，可通过ip addr命令查看。
+
+2）通过web服务器，mount -t nfs 172.16.1.100:/data.当故障切换时，nfs无间断提供服务，提供完美冗余。
+
+
+
+
+
+

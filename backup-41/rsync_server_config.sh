@@ -1,5 +1,38 @@
+#!/bin/sh
 ###rsync server config
-yum install -y xinetd
+
+#backup_keepalived
+mkdir -p /data/
+yum install -y xinetd sshpass nfs-utils keepalived 
+/etc/init.d/rpcbind start
+/etc/init.d/nfs start
+echo "/data 172.16.1.0/24(rw,sync,all_squash)">/etc/exports
+exportfs -rv
+chown -R nfsnobody. /data
+#backup从的keepalive配置
+echo "! Configuration File for keepalived
+global_defs {
+  router_id backup
+}
+vrrp_instance VI_1 {
+   state BACKUP
+   interface eth0
+   virtual_router_id 52
+   priority 100
+   advert_int 1
+   authentication {
+       auth_type PASS
+       auth_pass 1111
+    }
+   virtual_ipaddress {
+       172.16.1.100/24
+    }
+}">/etc/keepalived/keepalived.conf
+/etc/init.d/keepalived restart
+#双机互通
+ssh-keygen -t dsa -f /root/.ssh/id_dsa -P "" -q
+sshpass -p123456 ssh-copy-id -i /root/.ssh/id_dsa.pub "-o StrictHostKeyChecking=no root@172.16.1.31"
+
 #config rsync
 echo "
 ###rsyncd.config____________start
@@ -17,6 +50,8 @@ list = false
 hosts allow = 172.16.1.0/24
 auth users = rsync_backup
 secrets file = /etc/rsync.password
+[data]
+path = /data
 [backup]
 path = /backup
 [nfsbackup]

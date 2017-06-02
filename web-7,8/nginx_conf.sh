@@ -6,7 +6,7 @@ mkdir -p /application/nginx-1.10.2/html/blog/wp-content/uploads /application/ngi
 yum install -y nfs-utils nginx 
 /etc/init.d/rpcbind start
 chkconfig rpcbind on
-mount -t nfs 172.16.1.31:/data /data
+mount -t nfs 172.16.1.100:/data /data
 echo "mount -t nfs 172.16.1.31:/data /data">>/etc/rc.local
 
 #php_install
@@ -111,9 +111,9 @@ chown -R www.www /application/nginx/html/
 /application/nginx/sbin/nginx -s reload
 
 #mount_dir
-mount -t nfs 172.16.1.31:/data/blog /application/nginx-1.10.2/html/blog/wp-content/uploads/
-mount -t nfs 172.16.1.31:/data/www /application/nginx/html/www/uploads/
-mount -t nfs 172.16.1.31:/data/bbs /application/nginx/html/bbs/data/attachment/
+mount -t nfs 172.16.1.100:/data/blog /application/nginx-1.10.2/html/blog/wp-content/uploads/
+mount -t nfs 172.16.1.100:/data/www /application/nginx/html/www/uploads/
+mount -t nfs 172.16.1.100:/data/bbs /application/nginx/html/bbs/data/attachment/
 echo "mount -t nfs 172.16.1.31:/data/blog /application/nginx-1.10.2/html/blog/wp-content/uploads/">>/etc/rc.local
 echo "mount -t nfs 172.16.1.31:/data/www /application/nginx/html/www/uploads/">>/etc/rc.local
 echo "mount -t nfs 172.16.1.31:/data/bbs /application/nginx/html/bbs/data/attachment/">>/etc/rc.local
