@@ -16,8 +16,8 @@ http {
     
     
     upstream server_pools { 
-         server 10.0.0.7:80 weight=4 max_fails=3 fail_timeout=30s;
-         server 10.0.0.8:80 weight=4 max_fails=3 fail_timeout=30s;
+         server 172.16.1.7:80 weight=1 max_fails=3 fail_timeout=30s;
+         server 172.16.1.8:80 weight=1 max_fails=3 fail_timeout=30s;
     }       
     
     server { 

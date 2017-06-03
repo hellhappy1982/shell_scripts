@@ -42,20 +42,20 @@ vrrp_instance VI_1 {
        auth_pass 1111
     }
    virtual_ipaddress {
-       172.16.1.100/24
+       172.16.1.100/24 dev eth1 label eth1:1
     }
 }">/etc/keepalived/keepalived.conf
 /etc/init.d/keepalived restart
 
-backup从的keepalive配置
+	backup从的keepalive配置
 echo "! Configuration File for keepalived
 global_defs {
   router_id backup
 }
 vrrp_instance VI_1 {
    state BACKUP
-   interface eth0
-   virtual_router_id 52
+   interface eth1
+   virtual_router_id 51
    priority 100
    advert_int 1
    authentication {
@@ -63,7 +63,7 @@ vrrp_instance VI_1 {
        auth_pass 1111
     }
    virtual_ipaddress {
-       172.16.1.100/24
+      172.16.1.100/24 dev eth1 label eth1:1
     }
 }">/etc/keepalived/keepalived.conf
 /etc/init.d/keepalived restart
@@ -72,10 +72,6 @@ web01,02客户机测试
 showmount -e 172.16.1.100
 Export list for 172.16.1.100:
 /data 172.16.1.0/24
-挂载目录
-mount -t nfs 172.16.1.100:/data/blog /application/nginx-1.10.2/html/blog/wp-content/uploads/
-mount -t nfs 172.16.1.100:/data/www /application/nginx/html/www/uploads/
-mount -t nfs 172.16.1.100:/data/bbs /application/nginx/html/bbs/data/attachment/
 
 4.
 双机互通同步不需要输入root密码
@@ -104,7 +100,8 @@ done
 
 2）通过web服务器，mount -t nfs 172.16.1.100:/data.当故障切换时，nfs无间断提供服务，提供完美冗余。
 
-
+nfs高可用遗留问题：
+创建文件推送是没问题。但是删除文件同步时候，backup服务器/data并不进行无差异同步，还会保留原先的文件。这个还需要解决，所以准备星期一请教下老师。非常感谢曹娇月同学的提醒，原先不还没发现这个问题。除了同步数据以外，其他部分都是可以用。安装步骤做就可以了，数据同步可以另外找资料补充。特鸣谢曹娇月同学的指正。
 
 
 

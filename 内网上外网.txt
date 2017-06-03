@@ -1,0 +1,20 @@
+前提是建立好VPN，要不其他服务器会访问不了因为会关闭外网网卡。负载均衡服务器lb01,02不要此设置
+管理机
+modprobe iptable_filter 加载filter(过滤器，默认的table)
+modprobe iptable_nat  加载nat(地址转换)
+modprobe ip_conntrack
+modprobe ip_conntrack_ftp
+modprobe ip_nat_ftp
+modprobe ipt_state
+#修改Linux内核，让服务具有路由功能。
+echo 'net.ipv4.ip_forward = 1' >> /etc/sysctl.conf
+sysctl -p
+#配置防火墙支持NAT转发 -t 表名 -s 源IP/源子网>  <-o 网卡名> -j<目标>：指定要跳转的目标
+iptables -t nat -A POSTROUTING -s 172.16.1.0/24 -o eth0 -j SNAT --to-source 10.0.0.61
+
+#其他服务器
+#关闭eth0网卡，这时候xshell就连接不到服务器了。所以需要登录vpn连接内网ip登录服务器
+sed -i 's#ONBOOT=yes#ONBOOT=no#g' /etc/sysconfig/network-scripts/ifcfg-eth0
+#增加内网网卡DNS解析，为了能访问外网域名，还有m01内网IP地址为网关地址.
+echo -e 'DNS1=223.5.5.5\nDNS2=8.8.8.8\nGATEWAY=172.16.1.61' >> /etc/sysconfig/network-scripts/ifcfg-eth1
+/etc/init.d/network restart
