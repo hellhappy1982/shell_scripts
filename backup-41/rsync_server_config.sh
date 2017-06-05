@@ -1,8 +1,11 @@
 #!/bin/sh
 ###rsync server config
-
+#create uesr
+useradd -s /sbin/nologin -M rsync
 #backup_keepalived
-mkdir -p /data/
+mkdir -p /data /mysqlbackup /nfsbackup /backup
+chown -R rsync. /backup /nfsbackup /mysqlbackup 
+#install_app
 yum install -y xinetd sshpass nfs-utils keepalived 
 /etc/init.d/rpcbind start
 /etc/init.d/nfs start
@@ -56,13 +59,10 @@ path = /data
 path = /backup
 [nfsbackup]
 path = /nfsbackup
+[mysqlbackup]
+path = /mysqlbackup
 ###rsyncd.config____________end
 ">/etc/rsyncd.conf
-#create uesr
-useradd -s /sbin/nologin -M rsync
-#create dir
-mkdir -p /backup /nfsbackup 
-chown -R rsync. /backup /nfsbackup
 #create secrets file
 echo "rsync_backup:123456">/etc/rsync.password
 chmod 600 /etc/rsync.password

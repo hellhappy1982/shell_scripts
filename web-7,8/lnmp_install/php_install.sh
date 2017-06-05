@@ -58,16 +58,15 @@ ln -s /application/mysql/lib/libmysqlclient.so.18  /usr/lib64/
 touch ext/phar/phar.phar
 make && make install       
 
+cd /home/oldboy/tools/php-5.5.32 &&\cp php.ini-production /application/php-5.5.32/lib/php.ini
+
+cd /application/php-5.5.32/etc/ && \cp php-fpm.conf.default php-fpm.conf
 
 ln -s /application/php-5.5.32/ /application/php
 
-cd /home/oldboy/tools/php-5.5.32 &&\cp php.ini-production /application/php/lib/php.ini
-
-cd /application/php/etc/ && \cp php-fpm.conf.default php-fpm.conf
-
 useradd -s /sbin/nologin -M www
 
-
+sed -i 's#max_execution_time = 30#max_execution_time = 300#;s#max_input_time = 60#max_input_time = 300#;s#post_max_size = 8M#post_max_size = 16M#;910a date.timezone = Asia/Shanghai' /application/php-5.5.32/lib/php.ini
 
 
 

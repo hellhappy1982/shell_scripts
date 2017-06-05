@@ -1,0 +1,31 @@
+case "$1" in
+  start)
+        start
+        RETVAL=$?
+        ;;
+  stop)
+        stop
+        RETVAL=$?
+        ;;
+  status)
+        status $prog
+        RETVAL=$?
+        ;;
+  restart | reload| force-reload)
+        stop
+        start
+        RETVAL=$?
+        ;;
+  condrestart | try-restart)
+        if [ -f /var/lock/subsys/$prog ]; then
+                stop
+                start -w
+                RETVAL=$?
+        fi
+        ;;
+  *)
+        echo $"Usage: $0 {start|stop|status|restart|reload|force-reload|condrestart|try-restart}"
+        RETVAL=2
+        ;;
+esac
+               

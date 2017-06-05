@@ -1,0 +1,115 @@
+
+  ********  yum仓库服务端搭建  ********
+
+#1、安装createrepo软件：
+yum -y install createrepo
+
+#2、创建yum仓库目录
+mkdir -p /application/yum/centos6/x86_64/
+# ===> 模仿公网下面的yum目录结构
+cd /application/yum/centos6/x86_64/
+#rz   # ===> 上传rpm包到此目录，此目录下面还可以包括文件夹
+#获取rpm软件包的几种方法：
+#自己制作的rpm包
+#yumdownloader pcre-devel openssl-devel #只下载不安装
+#平时yum安装软件时不删除安装包
+#cat /etc/yum.conf
+#keepcache=1
+    
+#安装包默认存放目录：/var/cache/yum/x86_64/
+
+
+#3、初始化repodata索引文件
+#初始化  ===> 给rpm包做个目录，索引
+createrepo -pdo /application/yum/centos6/x86_64/ /application/yum/centos6/x86_64/
+#第一个目录：yum仓库的源路径,第二个目录：索引存放的路径
+
+#每加入一个rpm包就要更新一下
+createrepo --update /application/yum/centos6/x86_64/ 
+
+
+
+#4、提供yum服务
+# 这里用Python的http模块更简单，适用于内网环境
+#注意：先把Nginx关闭，防止80端口冲突！
+
+cd /application/yum/centos6/x86_64/
+nohup python -m SimpleHTTPServer 81 &>/dev/null &
+#1，可以更改端口，有ss -lntup |grep 81 查看端口是否开启
+#2，在客户端用telnet检查端口是否能连接。
+#用nohup更稳定。
+#可以通过浏览器输入本机IP查看 10.0.0.88
+#成功：有“repodata”目录，里面是rpm包的索引
+::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+   =============  nginx配合yum仓库  =============
+## 修改nginx.conf配置文件：
+[root@m01 conf]# cat nginx.conf
+worker_processes  1;
+events {
+    worker_connections  1024;
+}
+http {
+    include       mime.types;
+    default_type  application/octet-stream;
+    sendfile        on;
+    keepalive_timeout  65;
+
+    server {
+        listen       80;
+        server_name  yumrepe;
+        location / {
+            root   /application/yum/centos6/x86_64;
+            autoindex on;
+            index  index.html index.htm;
+        }
+    }
+}
+/application/nginx/sbin/nginx -t
+/application/nginx/sbin/nginx -s reload
+
+::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+  ********  yum仓库客户端使用  ********
+
+
+
+1、客户端配置
+cd /etc/yum.repos.d/    
+# ====> yum配置文件的目录
+mkdir yum_bak
+mv *repo yum_bak
+vim hellhappy.repo      
+# ===> 新建文件
+# ===> yum源名称
+[hellhappy]
+# ===> name随便
+name=server
+# ===> yum源服务器IP地址
+baseurl=http://172.16.1.61
+# ===> 激活yum源；0是不使用
+enable=1
+# ===> 校验机制；内网的就不需要（不去除，要给rpm包加密）
+gpgcheck=0
+yum clean all            
+# ===> 清空本机已有yum缓存
+yum list                 
+# ===> 列表显示yum仓库
+yum install ansible --config=/etc/yum.repos.d/hellhappy.repo
+
+
+
+
+
+
+
+
+
+
+/var/cache/是系统默认的存放路径，/application/yum/centos6/x86_64/ 是你设置的yum仓库目录，所以你要把包存放到yum仓库目录，然后在那里初始化（第一次），以后有包更新就是createrepo --update就行了，但是你更新前最好先cd /application/yum/centos6/x86_64/这个目录
+
+cd /application/yum/centos6/x86_64/
+python -m SimpleHTTPServer 80 &>/dev/null &
+这里要注意的是，必须先切换目录，否则你更新的地方是哪里，网页内容显示的就是哪里
+
+
+

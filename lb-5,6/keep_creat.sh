@@ -1,5 +1,6 @@
 #!/bin/sh
-
+sed -i 's#ONBOOT=no#ONBOOT=yes#g' /etc/sysconfig/network-scripts/ifcfg-eth0
+/etc/init.d/network restart
 yum install -y nginx keepalived
 /application/nginx/sbin/nginx
 

@@ -1,0 +1,48 @@
+#fpm是ruby写的，因此系统环境需要ruby，且ruby版本号大于1.8.5。
+# 安装ruby模块
+yum -y install ruby rubygems ruby-devel
+# 查看当前使用的rubygems仓库
+gem sources list
+# 添加淘宝的Rubygems仓库，外国的源慢，移除原生的Ruby仓库
+gem sources --add https://ruby.taobao.org/ --remove http://rubygems.org/
+#fpm需要另外下载，群里有。
+cd /home/oldboy/tools && rpm -ivh fpm-1.6.3-1.x86_64.rpm
+
+fpm使用
+-s：指定源类型
+-t：指定目标类型，即想要制作为什么包
+-n：指定包的名字
+-v：指定包的版本号
+-C：指定打包的相对路径
+-d：指定依赖于哪些包
+-f：第二次打包时目录下如果有同名安装包存在，则覆盖它
+-p：输出的安装包的目录，不想放在当前目录下就需要指定
+-post-install：软件包安装完成之后所要运行的脚本；同-after-install
+-pre-install：软件包安装完成之前所要运行的脚本；同-before-install
+-post-uninstall：软件包卸载完成之后所要运行的脚本；同-after-remove
+-pre-uninstall：软件包卸载完成之前所要运行的脚本；-before-remove
+
+#rmp包安装完以后需要执行的脚本，可以放在rmp包里。
+vim nginx_rpm.sh
+______________________________________________________
+#!/bin/sh
+useradd www -u 888 -M -s /sbin/nologin
+ln -s /application/nginx-1.10.2 /application/nginx
+chown -R www. /application/nginx*
+______________________________________________________
+
+fpm -s dir -t rpm -n nginx-web -v 1.10.2 -d 'pcre-devel,openssl-devel' --post-install /home/oldboy/scripts/nginx_rpm.sh -f /application/nginx/ 
+
+fpm -s dir -t rpm -n php -v 5.5.32 -d 'libmcrypt-devel mhash mcrypt zlib-devel libxml2-devel libjpeg-devel libjpeg-turbo-devel curl-devel openssl-devel freetype-devel libpng-devel gd-devel libcurl-devel libxslt-devel libxslt-devel' --after-install /server/scripts/after_php.sh -f /application/php-5.5.32/
+
+fpm -s dir -t rpm -n mysql -v 5.6.34 --post-install /server/scripts/mysql_rpm.sh -f /application/mysql-5.6.34/
+
+
+
+
+fpm -s dir -t rpm -n php-zabbix -v 5.5.32 -d 'libmcrypt-devel mhash mcrypt zlib-devel libxml2-devel libjpeg-devel libjpeg-turbo-devel curl-devel openssl-devel freetype-devel libpng-devel gd-devel libcurl-devel libxslt-devel libxslt-devel' --after-install /home/oldboy/scripts/after_php.sh -f /application/php-5.5.32/
+
+
+
+
+

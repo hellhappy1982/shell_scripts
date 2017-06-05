@@ -1,20 +1,14 @@
-- hosts: 172.16.1.5,172.16.1.6,172.16.1.7,172.16.1.8
+- hosts: 172.16.1.7,172.16.1.8
   tasks:
     - name: copy_all_script
-      copy: src=/server/scripts/ dest=/server/scripts/
+      copy: src=/home/oldboy/scripts/ dest=/home/oldboy/scripts/
     - name: copy_all_tools
       copy: src=/home/oldboy/tools/  dest=/home/oldboy/tools/ 
     - name: yum_creat
-      script: /server/scripts/yum_zabbix.sh
+      script: /home/oldboy/scripts/yum_zabbix.sh
     - name: local_time_sync
       shell: 'echo -e "#time sync \n*/5 * * * * /usr/sbin/ntpdate -u 172.16.1.61">/var/spool/cron/root'
-- hosts: 172.16.1.7,172.16.1.8
+- hosts: 172.16.1.8
   tasks:
     - name: nginx_conf
-      script: /server/scripts/nginx_conf.sh
-    - name: backup_sync_cron
-      cron: name='backup_sync_cron' minute=*/5 job='/bin/sh /server/scripts/web_sync.sh &>/dev/null'  
-- hosts: 172.16.1.5,172.16.1.6
-  tasks:
-    - name: keep_creat
-      script: /server/scripts/keep_creat.sh
+      script: /home/oldboy/scripts/nginx_conf.sh

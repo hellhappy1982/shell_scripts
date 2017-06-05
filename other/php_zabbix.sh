@@ -1,6 +1,6 @@
 ./configure \
 --prefix=/application/php-5.5.32 \
---with-mysql=/application/mysql/ \
+--with-mysql=mysqlnd \
 --with-pdo-mysql=mysqlnd \
 --with-mysqli=mysqlnd \
 --with-iconv-dir=/usr/local/libiconv \
@@ -35,8 +35,6 @@
 --enable-ftp \
 --enable-opcache=no
 
-
-yum -y install zabbix-web zabbix-web-mysql zabbix-server-mysql zabbix-get zabbix-agent  zabbix-java-gateway wqy-microhei-fonts
 
 
 

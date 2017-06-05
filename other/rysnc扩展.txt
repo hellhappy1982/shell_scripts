@@ -1,0 +1,1 @@
+ansible 172.16.1.7 -m shell -a "cd /etc/ && find . -type f -size +1000k -print0|rsync -0azvP --files-from=- . rsync_backup@172.16.1.41::backup --password-file=/etc/rsync.password" 
