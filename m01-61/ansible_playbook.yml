@@ -9,7 +9,7 @@
 - hosts: 172.16.1.51
   tasks:
     - name: mysql_config
-      script: /home/oldboy/scripts/mysql_conf.sh 
+      yum: name=mysql-web state=latest
     - name: mysql_sync_cron
       cron: name='mysql_sync_cron' minute=*/5 job='/bin/sh /home/oldboy/scripts/mysql_sync.sh &>/dev/null'
 - hosts: 172.16.1.41

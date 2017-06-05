@@ -35,7 +35,7 @@ fpm -s dir -t rpm -n nginx-web -v 1.10.2 -d 'pcre-devel,openssl-devel' --post-in
 
 fpm -s dir -t rpm -n php -v 5.5.32 -d 'libmcrypt-devel mhash mcrypt zlib-devel libxml2-devel libjpeg-devel libjpeg-turbo-devel curl-devel openssl-devel freetype-devel libpng-devel gd-devel libcurl-devel libxslt-devel libxslt-devel' --after-install /server/scripts/after_php.sh -f /application/php-5.5.32/
 
-fpm -s dir -t rpm -n mysql -v 5.6.34 --post-install /server/scripts/mysql_rpm.sh -f /application/mysql-5.6.34/
+fpm -s dir -t rpm -n mysql-web -v 5.6.34 --post-install /home/oldboy/scripts/mysql_rpm.sh -f /application/mysql-5.6.34/
 
 
 

@@ -1,7 +1,7 @@
 #!bin/bash
 # Source function library.
 . /etc/rc.d/init.d/functions
-mkdir -p /server/scripts/ /home/oldboy/tools/ /etc/ansible/playbook/ /application/yum/centos6/x86_64/
+mkdir -p /etc/ansible/playbook/ /application/yum/centos6/x86_64/
 #amend yum.conf
 sed -i 's#keepcache=0#keepcache=1#g' /etc/yum.conf
 sed -i 's#/var/cache/#/application/#g' /etc/yum.conf
@@ -124,6 +124,13 @@ chmod -R 755 /etc/zabbix/web
 chown -R apache.apache /etc/zabbix/web 
 echo "ServerName 127.0.0.1:80">>/etc/httpd/conf/httpd.conf
 
+rpm -ivh  http://mirrors.aliyun.com/zabbix/zabbix/3.0/rhel/6/x86_64/zabbix-agent-3.0.9-1.el6.x86_64.rpm
+
+yum localinstall http://mirrors.aliyun.com/zabbix/zabbix/3.0/rhel/6/x86_64/zabbix-agent-3.0.9-1.el6.x86_64.rpm
+
+sed -i 's#Server=127.0.0.1#Server=172.16.1.61#' /etc/zabbix/zabbix_agentd.conf
+
+/etc/init.d/zabbix-agent start
 /etc/init.d/httpd start
 /etc/init.d/zabbix-server start
 

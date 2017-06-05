@@ -59,7 +59,7 @@ global_defs {
 }
 
 vrrp_script chk_web_proxy {                  
-script "/server/scripts/chk_web_proxy.sh"    
+script "/home/oldboy/scripts/chk_web_proxy.sh"    
 interval 2                                   
 weight 2
 }
@@ -103,7 +103,7 @@ global_defs {
 }
 
 vrrp_script chk_web_proxy {                  
-script "/server/scripts/chk_web_proxy.sh"    
+script "/home/oldboy/scripts/chk_web_proxy.sh"    
 interval 2                                   
 weight 2
 }
