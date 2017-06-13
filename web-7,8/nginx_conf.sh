@@ -1,6 +1,6 @@
 #!/bin/sh
 
-mkdir -p /application/nginx/html/blog/wp-content/uploads /application/nginx/html/www/uploads/ /application/nginx/html/bbs/data/attachment  /application/nginx/conf/extra/  /data/{www,bbs,blog}
+mkdir -p /application/nginx/html/blog/wp-content/uploads /application/nginx/html/www/uploads/ /application/nginx/html/bbs/data/attachment  /application/nginx/conf/extra/  
 
 ###nfs_nginx_install 
 yum install -y nfs-utils nginx-web
@@ -55,6 +55,7 @@ echo "server {
         include fastcgi.conf;
             }
     }
+	access_log logs/access_blog.log main gzip buffer=32k flush=5s;
 } ">/application/nginx/conf/extra/blog.conf
 
 echo "server {
@@ -70,6 +71,7 @@ echo "server {
         include fastcgi.conf;
             }
     }
+	access_log logs/access_www.log main gzip buffer=32k flush=5s;
 }">/application/nginx/conf/extra/www.conf
 
 echo "server {
@@ -85,6 +87,7 @@ echo "server {
         include fastcgi.conf;
             }
     }
+	access_log logs/access_bbs.log main gzip buffer=32k flush=5s;
 }">/application/nginx/conf/extra/bbs.conf
 
 echo "server {
@@ -99,16 +102,16 @@ location /nginx_status {
 }">/application/nginx/conf/extra/status.conf
 useradd www -u 888 -M -s /sbin/nologin
 chown -R www.www /application/nginx/html/
-
+echo -e "#cut nginx access log \n00 00 * * * /bin/sh /home/oldboy/scripts/cut_nginx_log.sh >/dev/null 2>&1">>/var/spool/cron/root
 #start_nginx_php
 /application/nginx/sbin/nginx
 /application/php/sbin/php-fpm
 /application/nginx/sbin/nginx -s reload
 
 #mount_dir
-mount -t nfs 172.16.1.100:/data/blog /application/nginx/html/blog/wp-content/uploads/
-mount -t nfs 172.16.1.100:/data/www /application/nginx/html/www/uploads/
-mount -t nfs 172.16.1.100:/data/bbs /application/nginx/html/bbs/data/attachment/
+mount -t nfs 172.16.1.31:/data/blog /application/nginx/html/blog/wp-content/uploads/
+mount -t nfs 172.16.1.31:/data/www /application/nginx/html/www/uploads/
+mount -t nfs 172.16.1.31:/data/bbs /application/nginx/html/bbs/data/attachment/
 echo "mount -t nfs 172.16.1.31:/data/blog /application/nginx-1.10.2/html/blog/wp-content/uploads/">>/etc/rc.local
 echo "mount -t nfs 172.16.1.31:/data/www /application/nginx/html/www/uploads/">>/etc/rc.local
 echo "mount -t nfs 172.16.1.31:/data/bbs /application/nginx/html/bbs/data/attachment/">>/etc/rc.local

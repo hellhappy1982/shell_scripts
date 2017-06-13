@@ -8,7 +8,8 @@
 # $Create Date:  2016-06-23
 # $Description:  Monitor Nginx Service Status
 ############################################################
-NGINX_PORT=80  #如果端口不同仅需要修改脚本即可，否则修改xml很麻烦
+NGINX_PORT=80  
+#如果端口不同仅需要修改脚本即可，否则修改xml很麻烦
 NGINX_COMMAND=$1
 nginx_active(){
     /usr/bin/curl -s "http://127.0.0.1:"$NGINX_PORT"/nginx_status/" |awk '/Active/ {print $NF}'

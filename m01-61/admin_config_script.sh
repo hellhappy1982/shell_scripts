@@ -2,6 +2,10 @@
 # Source function library.
 . /etc/rc.d/init.d/functions
 mkdir -p /etc/ansible/playbook/ /application/yum/centos6/x86_64/
+
+#check rpmc
+cd /application/yum/centos6/x86_64 && \
+yum install -y openssh-5.3p1-122.el6.x86_64.rpm sshpass-1.06-1.el6.x86_64.rpm ansible-2.3.0.0-3.el6.noarch.rpm createrepo-0.9.9-26.el6.noarch.rpm inotify-tools-3.14-1.el6.x86_64.rpm
 #amend yum.conf
 sed -i 's#keepcache=0#keepcache=1#g' /etc/yum.conf
 sed -i 's#/var/cache/#/application/#g' /etc/yum.conf
@@ -19,9 +23,7 @@ fi
 
 #PS1_config
 echo "PS1='\[\e[32;1m\][\u@\h \W]\\$ \[\e[0m\]'" >>/etc/profile && . /etc/profile
-
-#check rpm
-yum install -y openssh sshpass ansible createrepo inotify                
+               
 #write_to_ip
 [ $(grep "172.16.1.51" /etc/ansible/hosts | wc -l) -eq 0 ] &&
 echo "[localip]
@@ -52,7 +54,7 @@ fi
 sed -i 's#restrict default kod nomodify notrap nopeer noquery#restrict  default  nomodify#g' /etc/ntp.conf
 sed -i 's#restrict -6 default kod nomodify notrap nopeer noquery#\#restrict -6 default kod nomodify notrapnopeer noquery#g' /etc/ntp.conf
 sed -i 's#server 0.centos.pool.ntp.org iburst#server ntp1.aliyun.com#g' /etc/ntp.conf
-sed -i 's#server 1.centos.pool.ntp.org iburst#\#server 1.centos.pool.ntp.org iburst#g' /etc/ntp.conf
+sed -i 's#server 1.centos.pool.ntp.org iburst#server time.nist.gov#g' /etc/ntp.conf
 sed -i 's#server 2.centos.pool.ntp.org iburst#\#server 2.centos.pool.ntp.org iburst#g' /etc/ntp.conf
 sed -i 's#server 3.centos.pool.ntp.org iburst#\#server 3.centos.pool.ntp.org iburst#g' /etc/ntp.conf
 /etc/init.d/ntpd restart
@@ -152,6 +154,6 @@ for ip in 172.16.1.5 172.16.1.6 172.16.1.7 172.16.1.8 172.16.1.31 172.16.1.41 17
 done
 
 #start_playbook
-cd /etc/ansible/playbook && ansible-playbook ansible_playbook.yml
+#cd /etc/ansible/playbook && ansible-playbook ansible_playbook.yml
 
 

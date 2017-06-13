@@ -55,16 +55,15 @@ http {
     sendfile        on;
     keepalive_timeout  65;
 
-    server {
-        listen       80;
-        server_name  yumrepe;
+server {
+        listen      10.0.0.61:81;
+        server_name  localhost;
         location / {
             root   /application/yum/centos6/x86_64;
             autoindex on;
             index  index.html index.htm;
         }
     }
-}
 /application/nginx/sbin/nginx -t
 /application/nginx/sbin/nginx -s reload
 

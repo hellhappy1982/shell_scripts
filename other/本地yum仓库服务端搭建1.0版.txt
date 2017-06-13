@@ -1,4 +1,4 @@
-第1章 本地yum仓库服务端搭建
+#本地yum仓库服务端搭建
 
 #1.1 安装createrepo软件
 yum -y install createrepo
@@ -6,17 +6,49 @@ yum -y install createrepo
 #1.2 创建yum仓库目录
 mkdir -p /application/yum/centos6/x86_64/
 
-1.3 初始化源数据repodata索引文件
+#1.3 初始化源数据repodata索引文件
 #第一个目录：yum仓库的源路径,第二个目录：索引存放的路径
 createrepo -pdo /application/yum/centos6/x86_64/ /application/yum/centos6/x86_64/ 
 #每加入一个rpm包就要更新一下
 createrepo --update /application/yum/centos6/x86_64/
 
-1.4 提供yum服务
+#1.4 提供yum服务第一种方法
 # 这里用Python的http模块更简单，适用于内网环境
 cd /application/yum/centos6/x86_64/ && nohup python -m SimpleHTTPServer 81 &>/dev/null &
-补充：这里用Python的http模块更简单，适用于内网环境
+#补充：这里用Python的http模块更简单，适用于内网环境
+#注意：
+cd /application/yum/centos6/x86_64/
+python -m SimpleHTTPServer 80 &>/dev/null &
+#必须先切换目录，否则你更新的地方是哪里，网页内容显示的就是哪里。
 
+#1.4 提供yum服务第二种方法
+#   =============  nginx配合yum仓库  =============
+## 修改nginx.conf配置文件：10.0.0.61:81外网访问ip地址，172.16.1.61:81为内网访问ip地址需要挂VPN或内网用户访问。
+[root@m01 conf]# cat nginx.conf
+worker_processes  1;
+events {
+    worker_connections  1024;
+}
+http {
+    include       mime.types;
+    default_type  application/octet-stream;
+    sendfile        on;
+    keepalive_timeout  65;
+
+server {
+		listen        10.0.0.61:81;
+        listen      172.16.1.61:81;
+        server_name  localhost;
+        location / {
+            root   /application/yum/centos6/x86_64;
+            autoindex on;
+            index  index.html index.htm;
+        }
+    }
+}
+/application/nginx/sbin/nginx -t
+/application/nginx/sbin/nginx -s reload
+#================================================================
 补充: 获取rpm软件包的几种方法：
 (1)	自己制作的rpm包
 (2)	yumdownloader pcre-devel openssl-devel #只下载不安装
@@ -27,18 +59,18 @@ sed -i 's#keepcache=0#keepcache=1#g' /etc/yum.conf
 mv $(find /var/cache/yum/x86_64/ -name "*rpm") /application/yum/centos6/x86_64/
 把安装包默认存放目录：/var/cache/yum/x86_64/ 的rpm包转移到创建yum仓库目录：/application/yum/centos6/x86_64/
 
-第2章 yum仓库客户端使用
+#第2章 yum仓库客户端使用
 
-2.1 更改yum配置文件的目录
+#2.1 更改yum配置文件的目录
 #切换到yum源的目录
 cd /etc/yum.repos.d/
 #创建新目录把原先yum源放在新建的目录下面
 mkdir yum_bak
 mv *repo yum_bak
 
-2.2 配置本地yum源
+#2.2 本地yum仓库客户端搭建
 vim localyum.repo
-———————————————————
+#------------------------
 #yum源名称
 [localyum]
 #name随便来
@@ -47,12 +79,14 @@ name=server
 baseurl=http://172.16.1.61:81
 #激活yum源；0是不使用
 enable=1
+#-----------------------
 #校验机制；内网的就不需要（不去除，要给rpm包加密）
 gpgcheck=0
 
-2.3 清空本机已有yum缓存
+#2.3 清空本机已有yum缓存
 yum clean all （每次有新的包都执行一遍）
- 
-2.5 配置好直接按普通yum安装命令执行就可以了。
-yum install -y 需安装的服务
+
+#2.4 列表显示yum仓库
+yum list
+
 

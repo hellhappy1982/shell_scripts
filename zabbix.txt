@@ -1,0 +1,13 @@
+zabbix_agent.conf
+Server:被动模式，允许哪台服务器连接Agent。
+ServerActive：主动模式，向哪台服务器传送数据。
+默认的用户密码为Admin，密码是zabbix，其用户和密码存于数据库中。
+mysql>select * from zabbix.users where alias='Admin';
+如果忘记Admin用户名和密码，可以直接修改数据库密码字段
+mysql>update zabbix.users set passwd=md5('zabbix') where alias='Admin';
+mysql>fluse privileges;
+如果想在数据库中查看主机组，运行下面的的语句
+mysql>select * from zabbix.groups;
+Zatree插件
+项目地址为https://github.com/spide4k/zattree
+支持Cacti的树形结构显示。

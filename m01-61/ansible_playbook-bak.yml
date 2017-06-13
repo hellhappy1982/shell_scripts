@@ -1,14 +1,27 @@
-- hosts: 172.16.1.7,172.16.1.8
+- hosts: 172.16.1.51,172.16.1.7,172.16.1.8,172.16.1.5,172.16.1.6
   tasks:
     - name: copy_all_script
       copy: src=/home/oldboy/scripts/ dest=/home/oldboy/scripts/
     - name: copy_all_tools
       copy: src=/home/oldboy/tools/  dest=/home/oldboy/tools/ 
-    - name: yum_creat
+    - name: yum_zabbix
       script: /home/oldboy/scripts/yum_zabbix.sh
-    - name: local_time_sync
-      shell: 'echo -e "#time sync \n*/5 * * * * /usr/sbin/ntpdate -u 172.16.1.61">/var/spool/cron/root'
-- hosts: 172.16.1.8
+- hosts: 172.16.1.51
   tasks:
-    - name: nginx_conf
+    - name: mysql_config
+      yum: name=mysql-web state=latest
+    - name: mysql_sync_cron
+      cron: name='mysql_sync_cron' minute=*/5 job='/bin/sh /home/oldboy/scripts/mysql_sync.sh &>/dev/null'
+- hosts: 172.16.1.7,172.16.1.8
+  tasks:
+    - name: nginx_config
       script: /home/oldboy/scripts/nginx_conf.sh
+    - name: nginx_status_script
+      copy: src=/home/oldboy/scripts/nginx_status.sh dest=/etc/zabbix/scripts/
+    - name: backup_sync_cron
+      cron: name='web_sync_cron' minute=*/5 job='/bin/sh /home/oldboy/scripts/web_sync.sh &>/dev/null'  
+- hosts: 172.16.1.5,172.16.1.6
+  tasks:
+    - name: lb_config
+      script: /home/oldboy/scripts/keep_creat.sh
+      

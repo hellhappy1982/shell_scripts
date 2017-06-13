@@ -92,6 +92,9 @@ vrrp_instance VI_2 {
     virtual_ipaddress {
      10.0.0.4/24 dev eth0 label eth0:2
     }
+	  track_script {
+    chk_web_proxy  
+    }
 }">/etc/keepalived/keepalived.conf
 
 ##keep_conf_lb02
@@ -135,6 +138,9 @@ vrrp_instance VI_2 {
     }
     virtual_ipaddress {
      10.0.0.4/24 dev eth0 label eth0:2
+    }
+	  track_script {
+    chk_web_proxy  
     }
 }">/etc/keepalived/keepalived.conf
 chmod +x /server/scripts/chk_web_proxy.sh

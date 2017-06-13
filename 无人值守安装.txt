@@ -1,0 +1,9 @@
+echo 'subnet 172.16.1.0 netmask 255.255.255.0 {
+   range 172.16.1.100 172.16.1.200;
+   option subnet-mask 255.255.255.0;
+   default-lease-time 36000;
+   max-lease-time 36000;
+   next-server 172.16.1.61;
+   filename "/pexlinux.0";
+}'>/etc/dhcp/dhcpd.conf
+sed  "277i ServerName 127.0.0.1:80" /etc/httpd/conf/httpd.conf
