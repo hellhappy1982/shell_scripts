@@ -1,3 +1,4 @@
+yum -y install dhcp
 echo 'subnet 172.16.1.0 netmask 255.255.255.0 {
    range 172.16.1.100 172.16.1.200;
    option subnet-mask 255.255.255.0;
@@ -6,4 +7,214 @@ echo 'subnet 172.16.1.0 netmask 255.255.255.0 {
    next-server 172.16.1.61;
    filename "/pexlinux.0";
 }'>/etc/dhcp/dhcpd.conf
-sed  "277i ServerName 127.0.0.1:80" /etc/httpd/conf/httpd.conf
+/etc/init.d/dhcpd start
+yum -y install tftp-server
+s
+#httpd_conf
+yum -y install httpd
+/etc/init.d/httpd start
+/etc/init.d/httpd start
+mkdir /var/www/html/CentOS6.8
+mount /dev/cdrom /var/www/html/CentOS6.8
+
+yum -y install syslinux
+cp /usr/share/syslinux/pxelinux.0 /var/lib/tftpboot/
+cp -a /var/www/html/CentOS6.8/isolinux/* /var/lib/tftpboot/
+mkdir -p /var/lib/tftpboot/pxelinux.cfg
+cp /var/www/html/CentOS6.8/isolinux/isolinux.cfg /var/lib/tftpboot/pxelinux.cfg/default
+
+tar xfP ks_config20170319.tar.gz
+#系统安装脚本
+# Kickstart Configurator for CentOS 6.7 by yao zhang
+install
+url --url="http://172.16.1.61/CentOS-6.8/"
+text
+lang en_US.UTF-8
+keyboard us
+zerombr
+bootloader --location=mbr --driveorder=sda --append="crashkernel=auto rhgb quiet"
+network --bootproto=dhcp --device=eth1 --onboot=yes --noipv6 --hostname=CentOS6
+timezone --utc Asia/Shanghai
+authconfig --enableshadow --passalgo=sha512
+clearpart --all --initlabel
+part /boot --fstype=ext4 --asprimary --size=200
+part swap --size=1024
+part / --fstype=ext4 --grow --asprimary --size=200
+firstboot --disable
+selinux --disabled
+firewall --disabled
+logging --level=info
+reboot
+
+%packages
+@base
+@compat-libraries
+@debugging
+@development
+tree
+nmap
+sysstat
+lrzsz
+dos2unix
+telnet
+
+%post
+wget -O /tmp/optimization.sh http://172.16.1.61/ks_config/optimization.sh &>/dev/null
+/bin/sh /tmp/optimization.sh
+%end
+#密码加密
+grub-crypt 
+Password: 
+Retype password: 
+$6$HcgmjsAwLrOK614/$bxkP.B4DgRhJSMenILyaCRF4OnR.tFAknZ8C5el64UNuxAep1xt/D4AHt1fJpdP.fpRZBjX7OH9accrHULrMe1
+#安装以后执行脚本
+#!/bin/bash
+. /etc/init.d/functions
+
+Ip=172.16.1.61
+Port=80
+ConfigDir=ks_config
+
+# Judge Http server is ok?
+PortNum=`nmap $Ip  -p $Port 2>/dev/null|grep open|wc -l`
+[ $PortNum -lt 1 ] && {
+echo "Http server is bad!"
+exit 1
+}
+
+# Defined result function
+function Msg(){
+        if [ $? -eq 0 ];then
+          action "$1" /bin/true
+        else
+          action "$1" /bin/false
+        fi
+}
+
+# Defined IP function
+function ConfigIP(){
+        Suffix=`ifconfig eth1|awk -F "[ .]+" 'NR==2 {print $6}'`
+        echo'
+        DEVICE=eth0
+        TYPE=Ethernet
+        ONBOOT=yes
+        NM_CONTROLLED=yes
+        BOOTPROTO=none
+        IPADDR=10.0.0.$Suffix
+        PREFIX=24
+        GATEWAY=10.0.0.2
+        DNS1=10.0.0.2
+        DEFROUTE=yes
+        IPV4_FAILURE_FATAL=yes
+        IPV6INIT=no
+        NAME="System eth0"'>/etc/sysconfig/network-scripts/ifcfg-eth0
+        Msg "config eth0"
+        echo'
+        DEVICE=eth1
+        TYPE=Ethernet
+        ONBOOT=yes
+        NM_CONTROLLED=yes
+        BOOTPROTO=none
+        IPADDR=172.16.1.$Suffix
+        PREFIX=24
+        DEFROUTE=yes
+        IPV4_FAILURE_FATAL=yes
+        IPV6INIT=no
+        NAME="System eth1"'>/etc/sysconfig/network-scripts/ifcfg-eth1
+        Msg "config eth1"
+}
+
+# Defined Yum source Functions
+function yum(){
+        YumDir=/etc/yum.repos.d
+        [ -f "$YumDir/CentOS-Base.repo" ] && cp $YumDir/CentOS-Base.repo{,.ori}
+        wget -O $YumDir/CentOS-Base.repo http://$Ip:$Port/$ConfigDir/CentOS-Base.repo &>/dev/null &&\
+        wget -O $YumDir/epel.repo http://$Ip:$Port/$ConfigDir/epel.repo &>/dev/null &&\
+        Msg "YUM source"
+}
+
+
+# Defined add Ordinary users Functions
+function AddUser(){
+        useradd oldboy &>/dev/null &&\
+        echo "123456"|passwd --stdin oldboy &>/dev/null &&\
+        sed  -i '98a oldboy    ALL=(ALL)       NOPASSWD:ALL'  /etc/sudoers &&\
+        visudo -c &>/dev/null
+        Msg "AddUser oldboy"
+}
+
+# Defined Hide the system version number Functions
+function HideVersion(){
+        [ -f "/etc/issue" ] && >/etc/issue
+        Msg "Hide issue"
+        [ -f "/etc/issue.net" ] && > /etc/issue.net
+        Msg "Hide issue.net"
+}
+
+
+# Defined SSHD config Functions
+function sshd(){
+        SshdDir=/etc/ssh
+        [ -f "$SshdDir/sshd_config" ] && /bin/mv $SshdDir/sshd_config{,.ori}
+        wget -O $SshdDir/sshd_config http://$Ip:$Port/$ConfigDir/sshd_config &>/dev/null &&\
+        chmod 600 $SshdDir/sshd_config
+        Msg "sshd config"
+}
+
+# Defined OPEN FILES Functions
+function openfiles(){
+        [ -f "/etc/security/limits.conf" ] && {
+        echo '*  -  nofile  65535' >> /etc/security/limits.conf
+        Msg "open files"
+        }
+}
+
+# Defined Kernel parameters Functions
+function kernel(){
+        KernelDir=/etc
+        [ -f "$KernelDir/sysctl.conf" ] && /bin/mv $KernelDir/sysctl.conf{,.ori}
+        wget -O $KernelDir/sysctl.conf http://$Ip:$Port/$ConfigDir/sysctl.conf &>/dev/null
+        Msg "Kernel config"
+}
+
+# Defined hosts file Functions
+function hosts(){
+        HostsDir=/etc
+        [ -f "$HostsDir/hosts" ] && /bin/mv $HostsDir/hosts{,.ori}
+        wget -O $HostsDir/hosts http://$Ip:$Port/$ConfigDir/hosts &>/dev/null
+        Msg "Hosts config"
+}
+
+# Defined System Startup Services Functions
+function boot(){
+        for oldboy in `chkconfig --list|grep "3:on"|awk '{print $1}'|grep -vE "crond|network|rsyslog|sshd"`
+          do
+           chkconfig $oldboy off
+        done
+        Msg "BOOT config"
+}
+
+# Defined Time Synchronization Functions
+function Time(){
+        echo "#time sync by zhangyao at $(date +%F)" >>/var/spool/cron/root
+        echo '*/5 * * * * /usr/sbin/ntpdate ntp1.aliyun.com &>/dev/null' >>/var/spool/cron/root
+        Msg "Time Synchronization"
+}
+
+# Defined main Functions
+function main(){
+        ConfigIP
+        yum
+        AddUser
+        HideVersion
+        sshd
+        openfiles
+        kernel
+        hosts
+        boot
+        Time
+}
+
+main
+
+

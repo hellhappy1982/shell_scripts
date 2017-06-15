@@ -15,7 +15,7 @@ yum clean all
 echo -e "#time sync \n*/5 * * * * /usr/sbin/ntpdate 172.16.1.61">/var/spool/cron/root
 
 #eth1_conf
-sed -i 's#ONBOOT=yes#ONBOOT=no#g' /etc/sysconfig/network-scripts/ifcfg-eth0
+#sed -i 's#ONBOOT=yes#ONBOOT=no#g' /etc/sysconfig/network-scripts/ifcfg-eth0
 echo -e "DNS1=223.5.5.5\nDNS2=8.8.8.8\nGATEWAY=172.16.1.61" >>/etc/sysconfig/network-scripts/ifcfg-eth1
 /etc/init.d/network restart   
            
